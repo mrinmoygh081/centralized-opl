@@ -9,6 +9,7 @@ import makeAnimated from "react-select/animated";
 import { useSelector } from "react-redux";
 import { getAPI, postAPI } from "@/utils/fetchAPIs";
 import { useRouter } from "next/router";
+import { toast } from "react-toastify";
 
 const options = [
   { value: "Screen1", label: "Screen1" },
@@ -23,22 +24,13 @@ export default function Home() {
   const { loginToken } = useSelector((state) => state.authReducer);
   const [isLoading, setIsLoading] = useState(false);
   const [products, setProducts] = useState(null);
+  const [shifts, setShifts] = useState(null);
   const [selected, setSelected] = useState({
     product_id: "",
-    shift_id: "1",
+    shift_id: "",
   });
   const [oplData, setOplData] = useState(null);
   const [dateTimeNow, setDateTimeNow] = useState();
-
-  // const getOPL = async () => {
-  //   if (selected?.product !== "" && selected?.shift !== "") {
-  //     let res = await postAPI("dashboard", selected);
-  //     console.log("res", res);
-  //     if (res?.status) {
-  //       setOplData(res);
-  //     }
-  //   }
-  // };
 
   useEffect(() => {
     (async () => {
@@ -50,7 +42,6 @@ export default function Home() {
       }
     })();
   }, [selected]);
-  console.log(oplData);
 
   useEffect(() => {
     let dateTime = getDateTimeNow();
@@ -68,8 +59,20 @@ export default function Home() {
       toast.error("Something went wrong", data?.message);
     }
   };
+  const getShifts = async () => {
+    setIsLoading(true);
+    const data = await getAPI("shifts", null);
+    if (data?.status) {
+      setShifts(data?.data);
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+      toast.error("Something went wrong", data?.message);
+    }
+  };
 
   useEffect(() => {
+    getShifts();
     getData();
   }, []);
 
@@ -83,8 +86,44 @@ export default function Home() {
     })();
   }, [loginToken, router]);
 
-  const OPLHandler = () => {
-    console.log("OPLHandler");
+  const OPLHandler = async () => {
+    let oplSendFile = oplData.map((item, index) => {
+      return {
+        current_shift: item?.shift_id,
+        current_screen: item?.screen_ip,
+        current_img: item?.opl,
+        current_product: item?.product_id,
+      };
+    });
+    console.log("OPLHandler", oplSendFile);
+
+    // add data to current table
+    await oplSendFile.map(async (item, index) => {
+      const data = await postAPI("current", item, null);
+      if (data?.status) {
+        toast.success(`Image ${index + 1} sent succesfully`);
+      } else {
+        toast.error(`Product is not added. ${data?.message}`);
+      }
+    });
+
+    let requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+
+    // call opl
+    await oplSendFile.map(async (item, index) => {
+      await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_API}/oplCon`,
+        requestOptions
+      )
+        .then((response) => response.text())
+        .then((result) => console.log(result))
+        .catch((error) => console.log("error", error));
+
+      toast.success(`Instruction ${index} sent successfully`);
+    });
   };
 
   return (
@@ -100,7 +139,7 @@ export default function Home() {
           <div className="page d-flex flex-row flex-column-fluid">
             <SideBar />
             <div className="wrapper d-flex flex-column flex-row-fluid">
-              <Header />
+              <Header title={"Dashboard"} />
               <div
                 className="content d-flex flex-column flex-column-fluid"
                 id="kt_content"
@@ -120,10 +159,22 @@ export default function Home() {
                             </h2>
                             <div className="choose">
                               <label htmlFor="shifts">Choose Shift</label>
-                              <select id="shifts">
-                                <option>Shift1</option>
-                                <option>Shift2</option>
-                                <option>Shift3</option>
+                              <select
+                                id="shifts"
+                                onChange={(e) =>
+                                  setSelected({
+                                    ...selected,
+                                    shift_id: e.target.value,
+                                  })
+                                }
+                              >
+                                <option>Choose shift</option>
+                                {shifts &&
+                                  shifts.map((item, index) => (
+                                    <option key={index} value={item?.shift_id}>
+                                      {item?.shift_name}
+                                    </option>
+                                  ))}
                               </select>
                             </div>
                             <div className="choose">
@@ -158,11 +209,11 @@ export default function Home() {
                             <div className="card-header border-0 pt-5">
                               <h3 className="card-title align-items-start flex-column">
                                 <span className="card-label fw-bold fs-3 mb-1">
-                                  Products Parts
+                                  Products
                                 </span>
                                 <span className="text-muted mt-1 fw-semibold fs-7">
-                                  Total {oplData && oplData.length} Product
-                                  Parts
+                                  Total {oplData && oplData.length} Parts of the
+                                  Product
                                 </span>
                               </h3>
                             </div>
@@ -172,7 +223,7 @@ export default function Home() {
                                   <table className="table table-striped table-bordered table_height">
                                     <thead>
                                       <tr className="border-0">
-                                        <th>Product Part Name</th>
+                                        <th>Product | Shift</th>
                                         <th>Parts Of the Product</th>
                                         <th className=" min-w-150px">
                                           Instruction
@@ -183,7 +234,9 @@ export default function Home() {
                                     <tbody>
                                       {oplData.map((item, i) => (
                                         <tr key={i}>
-                                          <td>{item?.product}</td>
+                                          <td>
+                                            {item?.product} | {item?.shift}
+                                          </td>
                                           <td className="fw-semibold">
                                             {item?.parts}
                                           </td>

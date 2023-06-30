@@ -8,14 +8,14 @@ const Select = dynamic(() => import("react-select"), {
 });
 import makeAnimated from "react-select/animated";
 import { useSelector } from "react-redux";
-import { getAPI, postAPI } from "@/utils/fetchAPIs";
+import { getAPI, postAPI, putAPI } from "@/utils/fetchAPIs";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { toast } from "react-toastify";
 
 const animatedComponents = makeAnimated();
 
-export default function RelManagement() {
+export default function RelManagementEdit() {
   const router = useRouter();
   const { loginToken } = useSelector((state) => state.authReducer);
   const [screenData, setScreenData] = useState(null);
@@ -29,7 +29,21 @@ export default function RelManagement() {
     image: "",
     screens: "",
     shifts: "",
+    product_rel_id: "",
   });
+
+  useEffect(() => {
+    (async () => {
+      const { r_id } = router.query;
+      setSelected({ ...selected, product_rel_id: r_id });
+      let oplManages = await postAPI("relManagementSingle", {
+        product_rel_id: r_id,
+      });
+      if (oplManages.status) {
+        setSelected(oplManages.data[0]);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -87,23 +101,25 @@ export default function RelManagement() {
     })();
   }, [loginToken, router]);
 
-  const addOPLHandler = async () => {
+  const editOPLHandler = async () => {
     if (
       selected?.product !== "" &&
       selected?.parts !== "" &&
       selected?.screens !== "" &&
       selected?.shifts !== "" &&
-      selected?.image !== ""
+      selected?.image !== "" &&
+      selected?.product_rel_id !== ""
     ) {
-      const data = await postAPI("addOPL", selected, null);
+      const data = await putAPI("addOPL", selected, null);
       if (data?.status) {
-        toast.success("Product Line is added succesfully");
+        toast.success("Product Line is updated succesfully");
         setSelected({
           product: "",
           parts: "",
           image: "",
           screens: "",
           shifts: "",
+          product_rel_id: "",
         });
         setScreenData(null);
         setShiftData(null);
@@ -148,22 +164,27 @@ export default function RelManagement() {
                                 <div>
                                   <div>
                                     <div className="modal-header">
-                                      <h2 className="fw-bolder">Add OPL</h2>
+                                      <h2 className="fw-bolder">Edit OPL</h2>
                                     </div>
                                     {/* begin::Modal body */}
                                     <div className="modal-body my-7">
-                                      <form className="form" noValidate>
+                                      <div className="form">
                                         <div className="d-flex flex-column me-n7 pe-7">
                                           <div className="fv-row mb-7">
                                             <label className="required fw-bold fs-6 mb-2">
                                               Product Name
                                             </label>
                                             {productsData &&
-                                              productsData.length > 0 && (
+                                              productsData.length > 0 &&
+                                              selected && (
                                                 <Select
                                                   components={
                                                     animatedComponents
                                                   }
+                                                  defaultValue={{
+                                                    value: selected?.product_id,
+                                                    label: selected?.product,
+                                                  }}
                                                   onChange={(res) =>
                                                     setSelected({
                                                       ...selected,
@@ -189,6 +210,10 @@ export default function RelManagement() {
                                                     parts: res?.value,
                                                   })
                                                 }
+                                                defaultValue={{
+                                                  value: selected?.parts_id,
+                                                  label: selected?.parts,
+                                                }}
                                                 options={partsData}
                                               />
                                             </div>
@@ -204,6 +229,10 @@ export default function RelManagement() {
                                                   components={
                                                     animatedComponents
                                                   }
+                                                  defaultValue={{
+                                                    value: selected?.screen_ip,
+                                                    label: selected?.screen,
+                                                  }}
                                                   onChange={(res) =>
                                                     setSelected({
                                                       ...selected,
@@ -236,6 +265,10 @@ export default function RelManagement() {
                                                       ),
                                                     })
                                                   }
+                                                  defaultValue={{
+                                                    value: selected?.shift_id,
+                                                    label: selected?.shift,
+                                                  }}
                                                   options={shiftData}
                                                 />
                                               )}
@@ -257,7 +290,9 @@ export default function RelManagement() {
                                                       <div
                                                         className={
                                                           selected.image ==
-                                                          item?.instruction_id
+                                                            item?.instruction_id ||
+                                                          item?.instruction_id ==
+                                                            selected?.opl_id
                                                             ? "image_list active"
                                                             : "image_list"
                                                         }
@@ -301,15 +336,15 @@ export default function RelManagement() {
                                           <button
                                             type="button"
                                             className="btn btn-primary"
-                                            onClick={addOPLHandler}
+                                            onClick={editOPLHandler}
                                           >
                                             <span className="indicator-label">
-                                              ADD
+                                              UPDATE
                                             </span>
                                           </button>
                                         </div>
                                         {/* end::Actions */}
-                                      </form>
+                                      </div>
                                     </div>
                                     {/* end::Modal body */}
                                   </div>

@@ -61,8 +61,7 @@ const handler = async (req, res) => {
             );
           }
 
-          const uniqueSuffix =
-            Date.now() + "-" + Math.round(Math.random() * 1e9);
+          const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 3);
           file.name = uniqueSuffix + slugify(file.name);
           file.path = path.join("public/uploads", slugify(file.name));
         });
@@ -82,6 +81,8 @@ const handler = async (req, res) => {
           resolve(files);
         });
       });
+
+      console.log(data);
 
       let sql = "INSERT INTO instructions SET instruction_img=?";
       let r = await data?.file.map(async (item, i) => {

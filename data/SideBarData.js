@@ -25,8 +25,12 @@ export const masterMenuData = [
         link: "/screens",
       },
       {
-        title: "OPL",
+        title: "Instructions",
         link: "/instructions",
+      },
+      {
+        title: "Shifts",
+        link: "/shifts",
       },
     ],
   },

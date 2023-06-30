@@ -23,7 +23,7 @@ export default function SideBar() {
       <div id="kt_aside" className="aside aside-dark aside-hoverable">
         <div className="aside-logo flex-column-auto" id="kt_aside_logo">
           <Link href="/" className="logo_link">
-            <span>Centralised OPL</span>
+            <span>SUDISA OPL</span>
           </Link>
         </div>
         {/* Aside menu */}
@@ -89,6 +89,110 @@ export default function SideBar() {
                     </span>
                   </span>
                   <span className="menu-title">Dashboard</span>
+                </Link>
+              </div>
+              <div data-kt-menu-trigger="click" className="menu-item">
+                <Link href="/cron" className="menu-link">
+                  <span className="menu-icon">
+                    <span className="svg-icon svg-icon-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <rect
+                          x="2"
+                          y="2"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                        <rect
+                          opacity="0.3"
+                          x="13"
+                          y="2"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                        <rect
+                          opacity="0.3"
+                          x="13"
+                          y="13"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                        <rect
+                          opacity="0.3"
+                          x="2"
+                          y="13"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </span>
+                  </span>
+                  <span className="menu-title">CRON</span>
+                </Link>
+              </div>
+              <div data-kt-menu-trigger="click" className="menu-item">
+                <Link href="/alert" className="menu-link">
+                  <span className="menu-icon">
+                    <span className="svg-icon svg-icon-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <rect
+                          x="2"
+                          y="2"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                        <rect
+                          opacity="0.3"
+                          x="13"
+                          y="2"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                        <rect
+                          opacity="0.3"
+                          x="13"
+                          y="13"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                        <rect
+                          opacity="0.3"
+                          x="2"
+                          y="13"
+                          width="9"
+                          height="9"
+                          rx="2"
+                          fill="currentColor"
+                        />
+                      </svg>
+                    </span>
+                  </span>
+                  <span className="menu-title">Alert</span>
                 </Link>
               </div>
               <div className="menu-item">

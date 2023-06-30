@@ -10,6 +10,8 @@ import { useSelector } from "react-redux";
 import { getAPI, postAPI } from "@/utils/fetchAPIs";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPen } from "@fortawesome/free-solid-svg-icons";
 
 const animatedComponents = makeAnimated();
 
@@ -83,7 +85,7 @@ export default function RelManagement() {
                                 <table className="table table-striped table-bordered">
                                   <thead>
                                     <tr className="border-0">
-                                      <th>Product Name</th>
+                                      <th>Product | Shift</th>
                                       <th>Product Part Name</th>
                                       <th className="min-w-500px">
                                         Product Part Image
@@ -96,7 +98,9 @@ export default function RelManagement() {
                                       opls.length > 0 &&
                                       opls.map((item, index) => (
                                         <tr key={index}>
-                                          <td>{item?.product}</td>
+                                          <td>
+                                            {item?.product} | {item?.shift}
+                                          </td>
                                           <td className="fw-semibold">
                                             {item?.parts}
                                           </td>
@@ -112,6 +116,14 @@ export default function RelManagement() {
                                             />
                                           </td>
                                           <td>{item?.screen}</td>
+                                          {/* <td>
+                                            <Link
+                                              href={`/relmanage-edit?r_id=${item?.id}`}
+                                              className="btn btn-icon btn-light btn-active-color-primary btn-sm me-1"
+                                            >
+                                              <FontAwesomeIcon icon={faPen} />
+                                            </Link>
+                                          </td> */}
                                         </tr>
                                       ))}
                                   </tbody>

@@ -90,3 +90,12 @@
   border: 4px solid #cbb852;
   filter: opacity(0.8);
 }
+.table_height tbody.img_tbody {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.table_height tbody.img_tbody tr {
+  width: 25%;
+}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React, { useState } from "react";
 
-export default function Header() {
+export default function Header({ title }) {
   const [isDropOpen, setIsDropOpen] = useState(false);
   const toggleDropMenu = () => setIsDropOpen(!isDropOpen);
   return (
@@ -46,7 +46,7 @@ export default function Header() {
                 >
                   <div className="menu-item here show menu-lg-down-accordion me-lg-1">
                     <span className="menu-link py-3">
-                      <span className="menu-title">Dashboard</span>
+                      <span className="menu-title">{title}</span>
                       <span className="menu-arrow d-lg-none"></span>
                     </span>
                   </div>

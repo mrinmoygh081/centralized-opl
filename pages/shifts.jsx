@@ -1,21 +1,26 @@
 import Head from "next/head";
 import SideBar from "@/components/SideBar";
 import Header from "@/components/Header";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { getAPI, postAPI, putAPI } from "@/utils/fetchAPIs";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
-import Image from "next/image";
 
-export default function Instructions() {
+export default function Shifts() {
   const { loginToken } = useSelector((state) => state.authReducer);
   const { push } = useRouter();
-  const [fetchData, setFetchData] = useState(null);
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const [previewImg, setPreviewImg] = useState([]);
+  const [shifts, setShifts] = useState(null);
+  const [addForm, setAddForm] = useState({
+    shift_name: "",
+    shift_id: "",
+  });
+  const [editForm, setEditForm] = useState({
+    shift_name: "",
+    shift_id: "",
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -30,56 +35,57 @@ export default function Instructions() {
 
   const getData = async () => {
     setIsLoading(true);
-    const data = await getAPI("instructions", null);
+    const data = await getAPI("shifts", null);
     if (data?.status) {
-      setFetchData(data?.data);
+      setShifts(data?.data);
       setIsLoading(false);
     } else {
       setIsLoading(false);
-      toast.error(`Something went wrong. ${data?.message}`);
+      toast.error("Something went wrong", data?.message);
     }
   };
   useEffect(() => {
     getData();
   }, []);
 
-  const handleImages = async (e) => {
-    let images = [];
-    let sFiles = [];
-
-    for (let i = 0; i < e.target.files.length; i++) {
-      sFiles.push(e.target.files[i]);
-      images.push(URL.createObjectURL(e.target.files[i]));
-    }
-    setSelectedFiles(sFiles);
-    setPreviewImg(images);
+  const editIcon = (item) => {
+    setEditForm(item);
   };
 
   const addBtn = async () => {
-    let formdata = new FormData();
-
-    for (let i = 0; i < selectedFiles.length; i++) {
-      formdata.append("file", selectedFiles[i]);
-    }
-
-    let requestOptions = {
-      method: "POST",
-      body: formdata,
-      redirect: "follow",
-    };
-
-    await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_API}/instructions`,
-      requestOptions
-    )
-      .then((response) => response.text())
-      .then(async (result) => {
-        console.log(result);
+    if (addForm?.shift_name !== "") {
+      const data = await postAPI("shifts", addForm, null);
+      if (data?.status) {
+        toast.success("Shift is added succesfully");
         await getData();
-        setPreviewImg([]);
-        setSelectedFiles([]);
-      })
-      .catch((error) => console.log("error", error));
+        setAddForm({
+          shift_name: "",
+          shift_id: "",
+        });
+      } else {
+        toast.error("Shift is not added. Try Again!");
+      }
+    } else {
+      toast.error("Please fill all the fields");
+    }
+  };
+
+  const updateBtn = async () => {
+    if (editForm?.shift_name !== "") {
+      const data = await putAPI("shifts", editForm, null);
+      if (data?.status) {
+        toast.success("Shift is updated succesfully");
+        await getData();
+        setEditForm({
+          shift_name: "",
+          shift_id: "",
+        });
+      } else {
+        toast.error("Shift is not updated. Try Again!");
+      }
+    } else {
+      toast.error("Please fill all the fields");
+    }
   };
 
   return (
@@ -105,35 +111,21 @@ export default function Instructions() {
                     <div className="row g-5 g-xl-8">
                       <div className="col-md-6 col-12">
                         <div className="screen_header shadow">
-                          <h1>Add Instruction</h1>
+                          <h1>Add Shift</h1>
                           <div className="pt-5">
-                            <label htmlFor="productpartname">
-                              Instruction Image
-                            </label>
+                            <label htmlFor="shift_name">Shift Name</label>
                             <input
-                              type="file"
+                              type="text"
                               className="form-control pb-2"
-                              id="productpartname"
-                              accept=".jpg, .png, .jpeg, .webp"
-                              onChange={(e) => handleImages(e)}
-                              multiple={true}
+                              id="shift_name"
+                              value={addForm?.shift_name}
+                              onChange={(e) =>
+                                setAddForm({
+                                  ...addForm,
+                                  shift_name: e.target.value,
+                                })
+                              }
                             />
-                            {previewImg && previewImg.length > 0 && (
-                              <div className="previewDiv shadow">
-                                {previewImg.map((item, index) => (
-                                  <Fragment key={index}>
-                                    <div className="previewImg">
-                                      <Image
-                                        src={item}
-                                        alt="preview image"
-                                        width={200}
-                                        height={100}
-                                      />
-                                    </div>
-                                  </Fragment>
-                                ))}
-                              </div>
-                            )}
                             <div className="text-start py-3">
                               <button
                                 onClick={addBtn}
@@ -144,17 +136,44 @@ export default function Instructions() {
                             </div>
                           </div>
                         </div>
+                        {editForm?.shift_id !== "" && (
+                          <div className="screen_header shadow">
+                            <h1>EDIT Shift</h1>
+                            <div className="pt-5">
+                              <label htmlFor="shift_id_edit">Shift Name</label>
+                              <input
+                                type="text"
+                                className="form-control pb-2"
+                                id="shift_id_edit"
+                                value={editForm?.shift_name}
+                                onChange={(e) =>
+                                  setEditForm({
+                                    ...editForm,
+                                    shift_name: e.target.value,
+                                  })
+                                }
+                              />
+                              <div className="text-start py-3">
+                                <button
+                                  onClick={updateBtn}
+                                  className="btn fw-bold btn-primary"
+                                >
+                                  UPDATE
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <div className="col-12">
+                      <div className="col-md-6 col-12">
                         <div className="card card-xxl-stretch mb-5 mb-xxl-8">
                           <div className="card-header border-0 pt-5">
                             <h3 className="card-title align-items-start flex-column">
                               <span className="card-label fw-bold fs-3 mb-1">
-                                Instructions
+                                Shifts
                               </span>
                               <span className="text-muted mt-1 fw-semibold fs-7">
-                                {fetchData &&
-                                  `Total ${fetchData.length} Instructions`}
+                                Total {shifts && shifts.length} Shifts
                               </span>
                             </h3>
                           </div>
@@ -164,35 +183,27 @@ export default function Instructions() {
                                 <table className="table table-striped table-bordered table_height">
                                   <thead>
                                     <tr className="border-0">
-                                      <th className=" min-w-150px">
-                                        Instructions
-                                      </th>
+                                      <th className=" min-w-150px">Shifts</th>
+                                      <th className=" min-w-140px">Action</th>
                                     </tr>
                                   </thead>
-                                  <tbody className="img_tbody">
-                                    {isLoading ? (
-                                      <tr>
-                                        <td>Loading...</td>
-                                      </tr>
-                                    ) : (
-                                      fetchData &&
-                                      fetchData.map((item, index) => (
+                                  <tbody>
+                                    {shifts &&
+                                      shifts.map((item, index) => (
                                         <tr key={index}>
                                           <td className="fw-semibold">
-                                            <Image
-                                              loader={({ src }) => {
-                                                return `uploads/${src}`;
-                                              }}
-                                              src={item.instruction_img}
-                                              alt=""
-                                              width={200}
-                                              height={100}
-                                              loading="lazy"
-                                            />
+                                            {item?.shift_name}
+                                          </td>
+                                          <td>
+                                            <button
+                                              onClick={() => editIcon(item)}
+                                              className="btn btn-icon btn-light btn-active-color-primary btn-sm me-1"
+                                            >
+                                              <FontAwesomeIcon icon={faPen} />
+                                            </button>
                                           </td>
                                         </tr>
-                                      ))
-                                    )}
+                                      ))}
                                   </tbody>
                                 </table>
                               </div>

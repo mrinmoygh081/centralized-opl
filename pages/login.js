@@ -26,7 +26,6 @@ export default function Login() {
       return;
     }
     setIsLoading(true);
-    console.log(loginData);
     let res = await postAPI("auth", loginData, null);
     if (res?.status) {
       dispatch(loginFun(res));
