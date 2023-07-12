@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 import { getAPI, postAPI } from "@/utils/fetchAPIs";
 import { useRouter } from "next/router";
 import { toast } from "react-toastify";
+import { CronJob } from "cron";
 
 const options = [
   { value: "Screen1", label: "Screen1" },
@@ -86,25 +87,31 @@ export default function Home() {
     })();
   }, [loginToken, router]);
 
-  const OPLHandler = async () => {
+  const OPLHandler = async (toggle) => {
     let oplSendFile = oplData.map((item, index) => {
+      let c_img;
+      if (toggle) {
+        c_img = item?.opl;
+      } else {
+        c_img = item?.opl2;
+      }
+      console.log(c_img);
       return {
         current_shift: item?.shift_id,
         current_screen: item?.screen_ip,
-        current_img: item?.opl,
+        current_img: c_img,
         current_product: item?.product_id,
       };
     });
-    console.log("OPLHandler", oplSendFile);
 
     // add data to current table
     await oplSendFile.map(async (item, index) => {
       const data = await postAPI("current", item, null);
-      if (data?.status) {
-        toast.success(`Image ${index + 1} sent succesfully`);
-      } else {
-        toast.error(`Product is not added. ${data?.message}`);
-      }
+      // if (data?.status) {
+      //   toast.success(`Image ${index + 1} sent succesfully`);
+      // } else {
+      //   toast.error(`Product is not added. ${data?.message}`);
+      // }
     });
 
     let requestOptions = {
@@ -118,12 +125,49 @@ export default function Home() {
         `${process.env.NEXT_PUBLIC_BACKEND_API}/oplCon`,
         requestOptions
       )
-        .then((response) => response.text())
-        .then((result) => console.log(result))
+        .then((response) => response.json())
+        .then((result) => {
+          if (result?.status) {
+            toast.success(
+              `Screen ID ${item?.current_screen} sent successfully`
+            );
+          } else {
+            toast.error(`Screen ID ${item?.current_screen} cannot be sent`);
+          }
+        })
         .catch((error) => console.log("error", error));
-
-      toast.success(`Instruction ${index} sent successfully`);
     });
+  };
+
+  const [cron, setCron] = useState(null);
+  const cronJobStart = (toggle) => {
+    setCron(
+      new CronJob(
+        "*/10 * * * * *",
+        async function () {
+          console.log("Hello");
+          await OPLHandler(toggle);
+          toggle = !toggle;
+        },
+        null,
+        true,
+        "America/Los_Angeles"
+      )
+    );
+  };
+
+  const sendHandler = async (toggle) => {
+    // await OPLHandler();
+    cronJobStart(toggle);
+  };
+
+  const stopCronJob = async () => {
+    if (cron) {
+      cron.stop();
+      toast.success("Process has been stopped!");
+    } else {
+      toast.error("Please send the process first!");
+    }
   };
 
   return (
@@ -226,7 +270,10 @@ export default function Home() {
                                         <th>Product | Shift</th>
                                         <th>Parts Of the Product</th>
                                         <th className=" min-w-150px">
-                                          Instruction
+                                          1st Instruction
+                                        </th>
+                                        <th className=" min-w-150px">
+                                          2nd Instruction
                                         </th>
                                         <th>Screen Names</th>
                                       </tr>
@@ -247,22 +294,44 @@ export default function Home() {
                                               }}
                                               src={item.opl}
                                               alt=""
-                                              width={200}
-                                              height={100}
+                                              width={180}
+                                              height={90}
                                               loading="lazy"
                                             />
                                           </td>
-                                          <td>{item?.screen}</td>
+                                          <td>
+                                            <Image
+                                              loader={({ src }) => {
+                                                return `uploads/${src}`;
+                                              }}
+                                              src={item.opl2}
+                                              alt=""
+                                              width={180}
+                                              height={90}
+                                              loading="lazy"
+                                            />
+                                          </td>
+                                          <td>
+                                            {item?.screen} <br />
+                                            Screen ID: <b>{item?.screen_id}</b>
+                                          </td>
                                         </tr>
                                       ))}
                                     </tbody>
                                   </table>
                                   <div className="text-center py-3">
                                     <button
-                                      className="btn fw-bold btn-primary"
-                                      onClick={OPLHandler}
+                                      className="btn fw-bold btn-primary mx-3"
+                                      onClick={() => sendHandler(true)}
                                     >
                                       Send
+                                    </button>
+
+                                    <button
+                                      className="btn fw-bold btn-primary mx-3"
+                                      onClick={() => stopCronJob()}
+                                    >
+                                      Stop
                                     </button>
                                   </div>
                                 </div>

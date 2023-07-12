@@ -91,59 +91,7 @@ export default function SideBar() {
                   <span className="menu-title">Dashboard</span>
                 </Link>
               </div>
-              <div data-kt-menu-trigger="click" className="menu-item">
-                <Link href="/cron" className="menu-link">
-                  <span className="menu-icon">
-                    <span className="svg-icon svg-icon-2">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                      >
-                        <rect
-                          x="2"
-                          y="2"
-                          width="9"
-                          height="9"
-                          rx="2"
-                          fill="currentColor"
-                        />
-                        <rect
-                          opacity="0.3"
-                          x="13"
-                          y="2"
-                          width="9"
-                          height="9"
-                          rx="2"
-                          fill="currentColor"
-                        />
-                        <rect
-                          opacity="0.3"
-                          x="13"
-                          y="13"
-                          width="9"
-                          height="9"
-                          rx="2"
-                          fill="currentColor"
-                        />
-                        <rect
-                          opacity="0.3"
-                          x="2"
-                          y="13"
-                          width="9"
-                          height="9"
-                          rx="2"
-                          fill="currentColor"
-                        />
-                      </svg>
-                    </span>
-                  </span>
-                  <span className="menu-title">CRON</span>
-                </Link>
-              </div>
-              <div data-kt-menu-trigger="click" className="menu-item">
+              {/* <div data-kt-menu-trigger="click" className="menu-item">
                 <Link href="/alert" className="menu-link">
                   <span className="menu-icon">
                     <span className="svg-icon svg-icon-2">
@@ -194,7 +142,7 @@ export default function SideBar() {
                   </span>
                   <span className="menu-title">Alert</span>
                 </Link>
-              </div>
+              </div> */}
               <div className="menu-item">
                 <div className="menu-content pt-8 pb-2">
                   <span className="menu-section text-muted text-uppercase fs-8 ls-1">

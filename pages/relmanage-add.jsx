@@ -27,6 +27,7 @@ export default function RelManagement() {
     product: "",
     parts: "",
     image: "",
+    image2: "",
     screens: "",
     shifts: "",
   });
@@ -93,7 +94,8 @@ export default function RelManagement() {
       selected?.parts !== "" &&
       selected?.screens !== "" &&
       selected?.shifts !== "" &&
-      selected?.image !== ""
+      selected?.image !== "" &&
+      selected?.image2 !== ""
     ) {
       const data = await postAPI("addOPL", selected, null);
       if (data?.status) {
@@ -102,6 +104,7 @@ export default function RelManagement() {
           product: "",
           parts: "",
           image: "",
+          image2: "",
           screens: "",
           shifts: "",
         });
@@ -243,7 +246,7 @@ export default function RelManagement() {
 
                                           <div className="fv-row mb-7">
                                             <label className="required fw-bold fs-6 mb-2">
-                                              Product Part Image
+                                              1st Instruction
                                             </label>
                                             <div className="row">
                                               {imagesData &&
@@ -265,6 +268,52 @@ export default function RelManagement() {
                                                           setSelected({
                                                             ...selected,
                                                             image:
+                                                              item?.instruction_id,
+                                                          })
+                                                        }
+                                                      >
+                                                        <Image
+                                                          loader={({ src }) => {
+                                                            return `uploads/${src}`;
+                                                          }}
+                                                          src={
+                                                            item?.instruction_img
+                                                          }
+                                                          alt=""
+                                                          width={200}
+                                                          height={100}
+                                                        />
+                                                      </div>
+                                                    </div>
+                                                  )
+                                                )}
+                                            </div>
+                                          </div>
+
+                                          <div className="fv-row mb-7">
+                                            <label className="required fw-bold fs-6 mb-2">
+                                              2nd Instruction
+                                            </label>
+                                            <div className="row">
+                                              {imagesData &&
+                                                imagesData.length > 0 &&
+                                                imagesData.map(
+                                                  (item, index) => (
+                                                    <div
+                                                      className="col-12 col-md-3"
+                                                      key={index}
+                                                    >
+                                                      <div
+                                                        className={
+                                                          selected.image2 ==
+                                                          item?.instruction_id
+                                                            ? "image_list active"
+                                                            : "image_list"
+                                                        }
+                                                        onClick={() =>
+                                                          setSelected({
+                                                            ...selected,
+                                                            image2:
                                                               item?.instruction_id,
                                                           })
                                                         }

@@ -87,8 +87,11 @@ export default function RelManagement() {
                                     <tr className="border-0">
                                       <th>Product | Shift</th>
                                       <th>Product Part Name</th>
-                                      <th className="min-w-500px">
-                                        Product Part Image
+                                      <th className="min-w-200px">
+                                        1st Instruction
+                                      </th>
+                                      <th className="min-w-200px">
+                                        2nd Instruction
                                       </th>
                                       <th>Screens</th>
                                     </tr>
@@ -104,15 +107,26 @@ export default function RelManagement() {
                                           <td className="fw-semibold">
                                             {item?.parts}
                                           </td>
-                                          <td className="min-w-500px">
+                                          <td className="min-w-200px">
                                             <Image
                                               loader={({ src }) => {
                                                 return `uploads/${src}`;
                                               }}
                                               src={item?.opl}
                                               alt=""
-                                              width={300}
-                                              height={150}
+                                              width={180}
+                                              height={90}
+                                            />
+                                          </td>
+                                          <td className="min-w-200px">
+                                            <Image
+                                              loader={({ src }) => {
+                                                return `uploads/${src}`;
+                                              }}
+                                              src={item?.opl2}
+                                              alt=""
+                                              width={180}
+                                              height={90}
                                             />
                                           </td>
                                           <td>{item?.screen}</td>
