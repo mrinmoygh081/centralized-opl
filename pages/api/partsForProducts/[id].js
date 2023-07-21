@@ -4,7 +4,7 @@ import { sendRes } from "@/utils/resHelper";
 const handler = async (req, res) => {
   if (req.method === "GET") {
     const { id } = req.query;
-    console.log(id);
+
     try {
       const result = await query({
         query: `SELECT * FROM subproduct

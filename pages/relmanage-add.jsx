@@ -22,31 +22,32 @@ export default function RelManagement() {
   const [shiftData, setShiftData] = useState(null);
   const [partsData, setPartsData] = useState(null);
   const [productsData, setProductsData] = useState(null);
+  const [clientsData, setClientsData] = useState(null);
   const [imagesData, setImagesData] = useState(null);
   const [selected, setSelected] = useState({
+    client: "",
     product: "",
     parts: "",
     image: "",
-    image2: "",
     screens: "",
     shifts: "",
   });
 
   useEffect(() => {
     (async () => {
+      let clients = await getAPI("clients", null);
+      let clientsOptions = [];
+      clients?.data.map((item) => {
+        clientsOptions.push({ value: item.client_id, label: item.name });
+      });
+      setClientsData(clientsOptions);
+
       let screen = await getAPI("screens", null);
       let scOptions = [];
       screen?.data.map((item) => {
         scOptions.push({ value: item.screen_ip, label: item.screen_name });
       });
       setScreenData(scOptions);
-
-      let products = await getAPI("products", null);
-      let productsOptions = [];
-      products?.data.map((item) => {
-        productsOptions.push({ value: item.product_id, label: item.name });
-      });
-      setProductsData(productsOptions);
 
       let shifts = await getAPI("shifts", null);
       let shiftsOptions = [];
@@ -75,6 +76,20 @@ export default function RelManagement() {
         });
         setPartsData(partsOptions);
       }
+
+      if (selected?.client !== "" && selected?.client !== undefined) {
+        let products = await postAPI("productByClient", {
+          client_id: selected?.client,
+        });
+        let productsOptions = [];
+        products?.data.map((item) => {
+          productsOptions.push({
+            value: item.product_id,
+            label: item.product_name,
+          });
+        });
+        setProductsData(productsOptions);
+      }
     })();
   }, [selected]);
 
@@ -90,21 +105,21 @@ export default function RelManagement() {
 
   const addOPLHandler = async () => {
     if (
+      selected?.client !== "" &&
       selected?.product !== "" &&
       selected?.parts !== "" &&
       selected?.screens !== "" &&
       selected?.shifts !== "" &&
-      selected?.image !== "" &&
-      selected?.image2 !== ""
+      selected?.image !== ""
     ) {
       const data = await postAPI("addOPL", selected, null);
       if (data?.status) {
-        toast.success("Product Line is added succesfully");
+        toast.success("OPL is added succesfully");
         setSelected({
+          client: "",
           product: "",
           parts: "",
           image: "",
-          image2: "",
           screens: "",
           shifts: "",
         });
@@ -159,10 +174,10 @@ export default function RelManagement() {
                                         <div className="d-flex flex-column me-n7 pe-7">
                                           <div className="fv-row mb-7">
                                             <label className="required fw-bold fs-6 mb-2">
-                                              Product Name
+                                              Client Name
                                             </label>
-                                            {productsData &&
-                                              productsData.length > 0 && (
+                                            {clientsData &&
+                                              clientsData.length > 0 && (
                                                 <Select
                                                   components={
                                                     animatedComponents
@@ -170,13 +185,38 @@ export default function RelManagement() {
                                                   onChange={(res) =>
                                                     setSelected({
                                                       ...selected,
-                                                      product: res?.value,
+                                                      client: res?.value,
                                                     })
                                                   }
-                                                  options={productsData}
+                                                  options={clientsData}
                                                 />
                                               )}
                                           </div>
+
+                                          {selected?.client && (
+                                            <>
+                                              <div className="fv-row mb-7">
+                                                <label className="required fw-bold fs-6 mb-2">
+                                                  Product Name
+                                                </label>
+                                                {productsData &&
+                                                  productsData.length > 0 && (
+                                                    <Select
+                                                      components={
+                                                        animatedComponents
+                                                      }
+                                                      onChange={(res) =>
+                                                        setSelected({
+                                                          ...selected,
+                                                          product: res?.value,
+                                                        })
+                                                      }
+                                                      options={productsData}
+                                                    />
+                                                  )}
+                                              </div>
+                                            </>
+                                          )}
 
                                           {selected?.product && (
                                             <div className="fv-row mb-7">
@@ -196,6 +236,7 @@ export default function RelManagement() {
                                               />
                                             </div>
                                           )}
+
                                           <div className="fv-row mb-7">
                                             <label className="required fw-bold fs-6 mb-2">
                                               Screens
@@ -246,7 +287,7 @@ export default function RelManagement() {
 
                                           <div className="fv-row mb-7">
                                             <label className="required fw-bold fs-6 mb-2">
-                                              1st Instruction
+                                              Instruction
                                             </label>
                                             <div className="row">
                                               {imagesData &&
@@ -268,52 +309,6 @@ export default function RelManagement() {
                                                           setSelected({
                                                             ...selected,
                                                             image:
-                                                              item?.instruction_id,
-                                                          })
-                                                        }
-                                                      >
-                                                        <Image
-                                                          loader={({ src }) => {
-                                                            return `uploads/${src}`;
-                                                          }}
-                                                          src={
-                                                            item?.instruction_img
-                                                          }
-                                                          alt=""
-                                                          width={200}
-                                                          height={100}
-                                                        />
-                                                      </div>
-                                                    </div>
-                                                  )
-                                                )}
-                                            </div>
-                                          </div>
-
-                                          <div className="fv-row mb-7">
-                                            <label className="required fw-bold fs-6 mb-2">
-                                              2nd Instruction
-                                            </label>
-                                            <div className="row">
-                                              {imagesData &&
-                                                imagesData.length > 0 &&
-                                                imagesData.map(
-                                                  (item, index) => (
-                                                    <div
-                                                      className="col-12 col-md-3"
-                                                      key={index}
-                                                    >
-                                                      <div
-                                                        className={
-                                                          selected.image2 ==
-                                                          item?.instruction_id
-                                                            ? "image_list active"
-                                                            : "image_list"
-                                                        }
-                                                        onClick={() =>
-                                                          setSelected({
-                                                            ...selected,
-                                                            image2:
                                                               item?.instruction_id,
                                                           })
                                                         }

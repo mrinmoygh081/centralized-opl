@@ -6,12 +6,15 @@ const handler = async (req, res) => {
     const { product_rel_id } = req.body;
     try {
       const result = await query({
-        query: `SELECT t1.product_rel_id as product_rel_id, t2.name as product, t2.product_id as product_id, t6.shift_name as shift, t6.shift_id as shift_id, t3.screen_name as screen, t3.screen_ip as screen_ip, t4.instruction_img as opl, t4.instruction_id as opl_id, t5.subproduct_id as parts_id, t5.parts_name as parts FROM product_rel as t1 
+        query: `SELECT t1.product_rel_id as product_rel_id, t2.name as product, t2.product_id as product_id, t6.shift_name as shift, t6.shift_id as shift_id, t3.screen_name as screen, 
+            t3.screen_ip as screen_ip, t4.instruction_img as opl, t4.instruction_id as opl_id, t5.subproduct_id as parts_id, t5.parts_name as parts, t7.name as client, t7.client_id
+            FROM product_rel as t1 
             INNER JOIN products as t2 ON t1.product_id = t2.product_id
             INNER JOIN subproduct as t5 ON t5.subproduct_id = t1.subproduct_id
             INNER JOIN screens as t3 ON t1.screen_id = t3.screen_id
             INNER JOIN instructions as t4 ON t1.instruction_id = t4.instruction_id
             INNER JOIN shifts as t6 ON t1.shift_id = t6.shift_id
+            INNER JOIN clients as t7 ON t1.client_id = t7.client_id
             WHERE t1.product_rel_id =?
         `,
         values: [product_rel_id],

@@ -70,3 +70,23 @@ export const putAPI = (path, body, token) => {
       console.log(error);
     });
 };
+
+export const deleteAPI = (path, token) => {
+  let config = {
+    method: "DELETE",
+    url: `${process.env.NEXT_PUBLIC_BACKEND_API}/${path}`,
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  };
+
+  return axios(config)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((error) => {
+      toast.error("Something went wrong! Please contact to the administrator");
+      console.log(error);
+    });
+};

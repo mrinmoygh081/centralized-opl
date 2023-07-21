@@ -13,15 +13,19 @@ export default function Productparts() {
   const { loginToken } = useSelector((state) => state.authReducer);
   const { push } = useRouter();
   const [fetchData, setFetchData] = useState(null);
+  const [clientData, setClientData] = useState(null);
   const [productData, setProductData] = useState(null);
+  const [productDataEdit, setProductDataEdit] = useState(null);
   const [addForm, setAddForm] = useState({
     parts_name: "",
     product_id: 0,
+    client_id: 0,
   });
   const [editForm, setEditForm] = useState({
     subproduct_id: "",
     parts_name: "",
     product_id: 0,
+    client_id: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -46,41 +50,70 @@ export default function Productparts() {
       toast.error("Something went wrong", data?.message);
     }
   };
-  useEffect(() => {
-    getData();
-  }, []);
 
-  const getProductData = async () => {
+  const getClientData = async () => {
     setIsLoading(true);
-    const data = await getAPI("products", null);
+    const data = await getAPI("clients", null);
     if (data?.status) {
-      setProductData(data?.data);
+      setClientData(data?.data);
       setIsLoading(false);
     } else {
       setIsLoading(false);
       toast.error("Something went wrong", data?.message);
     }
   };
+  const getProductData = async (form, flag) => {
+    setIsLoading(true);
+    const data = await postAPI("productByClient", {
+      client_id: form?.client_id,
+    });
+    if (data?.status) {
+      if (flag === "add") {
+        setProductData(data?.data);
+      } else if (flag === "edit") {
+        setProductDataEdit(data?.data);
+      }
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+      toast.error("Something went wrong", data?.message);
+    }
+  };
+
   useEffect(() => {
-    getProductData();
+    (async function () {
+      await getData();
+      await getClientData();
+    })();
   }, []);
 
+  useEffect(() => {
+    if (addForm?.client_id != null && addForm?.client_id != 0) {
+      getProductData(addForm, "add");
+    }
+  }, [addForm]);
+
+  useEffect(() => {
+    if (editForm?.client_id != null && editForm?.client_id != 0) {
+      getProductData(editForm, "edit");
+    }
+  }, [editForm]);
+
   const editIcon = (item) => {
-    console.log(item);
     setEditForm(item);
   };
 
   const addBtn = async () => {
-    console.log(addForm);
-    if (addForm?.parts_name !== "" && addForm?.product_id !== 0) {
+    if (
+      addForm?.parts_name !== "" &&
+      addForm?.product_id !== 0 &&
+      addForm?.client_id !== 0
+    ) {
       const data = await postAPI("productparts", addForm, null);
       if (data?.status) {
         toast.success("Product Part is added succesfully");
         await getData();
-        setAddForm({
-          parts_name: "",
-          product_id: 0,
-        });
+        setAddForm({ ...addForm, parts_name: "" });
       } else {
         toast.error(`Product Part is not added. ${data?.message}`);
       }
@@ -90,8 +123,11 @@ export default function Productparts() {
   };
 
   const updateBtn = async () => {
-    console.log(editForm);
-    if (editForm?.parts_name !== "" && editForm?.product_id !== 0) {
+    if (
+      editForm?.parts_name !== "" &&
+      editForm?.product_id !== 0 &&
+      editForm?.client_id !== 0
+    ) {
       const data = await putAPI("productparts", editForm, null);
       if (data?.status) {
         toast.success("Product Part is updated succesfully");
@@ -100,6 +136,7 @@ export default function Productparts() {
           subproduct_id: "",
           parts_name: "",
           product_id: 0,
+          client_id: 0,
         });
       } else {
         toast.error(`Product Part is not updated. ${data?.message}`);
@@ -133,6 +170,48 @@ export default function Productparts() {
                       <div className="col-md-6 col-12">
                         <div className="screen_header shadow">
                           <h1>Add Product Part</h1>
+
+                          <div className="choose pt-5">
+                            <label htmlFor="shifts">Choose Client</label>
+                            <select
+                              id="shifts"
+                              onChange={(e) =>
+                                setAddForm({
+                                  ...addForm,
+                                  client_id: e.target.value,
+                                })
+                              }
+                            >
+                              <option value={0}>Choose Client</option>
+                              {clientData &&
+                                clientData.map((item, index) => (
+                                  <option key={index} value={item?.client_id}>
+                                    {item?.name}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+
+                          <div className="choose pt-5">
+                            <label htmlFor="shifts">Choose Products</label>
+                            <select
+                              id="shifts"
+                              onChange={(e) =>
+                                setAddForm({
+                                  ...addForm,
+                                  product_id: e.target.value,
+                                })
+                              }
+                            >
+                              <option value={0}>Choose Products</option>
+                              {productData &&
+                                productData.map((item, index) => (
+                                  <option key={index} value={item?.product_id}>
+                                    {item?.product_name}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
                           <div className="pt-5">
                             <label htmlFor="productpartname">
                               Product Part Name
@@ -149,29 +228,6 @@ export default function Productparts() {
                                 })
                               }
                             />
-                            <div className="choose pt-5">
-                              <label htmlFor="shifts">Choose Products</label>
-                              <select
-                                id="shifts"
-                                onChange={(e) =>
-                                  setAddForm({
-                                    ...addForm,
-                                    product_id: e.target.value,
-                                  })
-                                }
-                              >
-                                <option value={0}>Choose Products</option>
-                                {productData &&
-                                  productData.map((item, index) => (
-                                    <option
-                                      key={index}
-                                      value={item?.product_id}
-                                    >
-                                      {item?.name}
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
                             <div className="text-start py-3">
                               <button
                                 onClick={addBtn}
@@ -182,63 +238,95 @@ export default function Productparts() {
                             </div>
                           </div>
                         </div>
-                        {editForm?.subproduct_id !== "" && (
-                          <div className="screen_header shadow">
-                            <h1>EDIT Product Parts</h1>
-                            <div className="pt-5">
-                              <label htmlFor="partname">
-                                Product Part Name
-                              </label>
-                              <input
-                                type="text"
-                                className="form-control pb-2"
-                                id="partname"
-                                value={editForm?.parts_name}
-                                onChange={(e) =>
-                                  setEditForm({
-                                    ...editForm,
-                                    parts_name: e.target.value,
-                                  })
-                                }
-                              />
-                              <div className="choose pt-5">
-                                <label htmlFor="shifts">Choose Products</label>
-                                <select
-                                  id="shifts"
+
+                        {editForm?.subproduct_id !== "" &&
+                          editForm?.subproduct_id !== undefined && (
+                            <div className="screen_header shadow">
+                              <h1>EDIT Product Parts</h1>
+                              <div className="pt-5">
+                                <div className="choose pt-5">
+                                  <label htmlFor="client">Choose Client</label>
+                                  <select
+                                    id="client"
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        client_id: e.target.value,
+                                      })
+                                    }
+                                  >
+                                    <option value={0}>Choose Client</option>
+                                    {clientData &&
+                                      clientData.map((item, index) => (
+                                        <option
+                                          key={index}
+                                          value={item?.client_id}
+                                          selected={
+                                            item?.client_id ===
+                                            editForm?.client_id
+                                          }
+                                        >
+                                          {item?.name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+
+                                <div className="choose pt-5">
+                                  <label htmlFor="product">
+                                    Choose Products
+                                  </label>
+                                  <select
+                                    id="product"
+                                    onChange={(e) =>
+                                      setEditForm({
+                                        ...editForm,
+                                        product_id: e.target.value,
+                                      })
+                                    }
+                                  >
+                                    <option value={0}>Choose Products</option>
+                                    {productDataEdit &&
+                                      productDataEdit.map((item, index) => (
+                                        <option
+                                          key={index}
+                                          value={item?.product_id}
+                                          selected={
+                                            item?.product_id ===
+                                            editForm?.product_id
+                                          }
+                                        >
+                                          {item?.product_name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                                <label htmlFor="partname">
+                                  Product Part Name
+                                </label>
+                                <input
+                                  type="text"
+                                  className="form-control pb-2"
+                                  id="partname"
+                                  value={editForm?.parts_name}
                                   onChange={(e) =>
                                     setEditForm({
                                       ...editForm,
-                                      product_id: e.target.value,
+                                      parts_name: e.target.value,
                                     })
                                   }
-                                >
-                                  <option value={0}>Choose Products</option>
-                                  {productData &&
-                                    productData.map((item, index) => (
-                                      <option
-                                        key={index}
-                                        value={item?.product_id}
-                                        selected={
-                                          item?.product_id ===
-                                          editForm?.product_id
-                                        }
-                                      >
-                                        {item?.name}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                              <div className="text-start py-3">
-                                <button
-                                  onClick={updateBtn}
-                                  className="btn fw-bold btn-primary"
-                                >
-                                  UPDATE
-                                </button>
+                                />
+                                <div className="text-start py-3">
+                                  <button
+                                    onClick={updateBtn}
+                                    className="btn fw-bold btn-primary"
+                                  >
+                                    UPDATE
+                                  </button>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
+                          )}
                       </div>
                       <div className="col-md-6 col-12">
                         <div className="card card-xxl-stretch mb-5 mb-xxl-8">
@@ -259,6 +347,7 @@ export default function Productparts() {
                                 <table className="table table-striped table-bordered table_height">
                                   <thead>
                                     <tr className="border-0">
+                                      <th className=" min-w-150px">Client</th>
                                       <th className=" min-w-150px">Product</th>
                                       <th className=" min-w-150px">
                                         Product Parts
@@ -271,7 +360,10 @@ export default function Productparts() {
                                       fetchData.map((item, index) => (
                                         <tr key={index}>
                                           <td className="fw-semibold">
-                                            {item?.name}
+                                            {item?.client_name}
+                                          </td>
+                                          <td className="fw-semibold">
+                                            {item?.product_name}
                                           </td>
                                           <td className="fw-semibold">
                                             {item?.parts_name}

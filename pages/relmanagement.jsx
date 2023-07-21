@@ -7,11 +7,13 @@ import React, { use, useEffect, useState } from "react";
 import Select from "react-select";
 import makeAnimated from "react-select/animated";
 import { useSelector } from "react-redux";
-import { getAPI, postAPI } from "@/utils/fetchAPIs";
+import { deleteAPI, getAPI, postAPI } from "@/utils/fetchAPIs";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { toast } from "react-toastify";
+import swal from "sweetalert";
 
 const animatedComponents = makeAnimated();
 
@@ -22,15 +24,6 @@ export default function RelManagement() {
   const [opls, setOpls] = useState([]);
 
   useEffect(() => {
-    (async () => {
-      let oplManages = await getAPI("relManagement", null);
-      if (oplManages.status) {
-        setOpls(oplManages.data);
-      }
-    })();
-  }, []);
-
-  useEffect(() => {
     (async function () {
       let token = { loginToken };
       let isAuth = await postAPI("isAuth", token, null);
@@ -39,6 +32,43 @@ export default function RelManagement() {
       }
     })();
   }, [loginToken, router]);
+
+  const getOPLs = async () => {
+    let oplManages = await getAPI("relManagement", null);
+
+    if (oplManages.status) {
+      setOpls(oplManages.data);
+    }
+  };
+  useEffect(() => {
+    (async () => {
+      await getOPLs();
+    })();
+  }, []);
+
+  const deleteHandler = async (item) => {
+    swal({
+      title: "Are you sure?",
+      text: "Once deleted, you will not be able to recover this OPL!",
+      icon: "warning",
+      buttons: true,
+      dangerMode: true,
+    }).then(async (willDelete) => {
+      if (willDelete) {
+        const data = await deleteAPI(`addOPL?id=${item.id}`, null);
+        if (data?.status) {
+          swal("Poof! Your OPL has been deleted!", {
+            icon: "success",
+          });
+          await getOPLs();
+        } else {
+          swal("OPL is not deleted. Try Again!");
+        }
+      } else {
+        swal("Your OPL is safe!");
+      }
+    });
+  };
 
   return (
     <>
@@ -85,15 +115,14 @@ export default function RelManagement() {
                                 <table className="table table-striped table-bordered">
                                   <thead>
                                     <tr className="border-0">
+                                      <th>Client</th>
                                       <th>Product | Shift</th>
                                       <th>Product Part Name</th>
                                       <th className="min-w-200px">
-                                        1st Instruction
-                                      </th>
-                                      <th className="min-w-200px">
-                                        2nd Instruction
+                                        Instruction
                                       </th>
                                       <th>Screens</th>
+                                      <th>Action</th>
                                     </tr>
                                   </thead>
                                   <tbody>
@@ -101,6 +130,7 @@ export default function RelManagement() {
                                       opls.length > 0 &&
                                       opls.map((item, index) => (
                                         <tr key={index}>
+                                          <td>{item?.client_name}</td>
                                           <td>
                                             {item?.product} | {item?.shift}
                                           </td>
@@ -118,26 +148,23 @@ export default function RelManagement() {
                                               height={90}
                                             />
                                           </td>
-                                          <td className="min-w-200px">
-                                            <Image
-                                              loader={({ src }) => {
-                                                return `uploads/${src}`;
-                                              }}
-                                              src={item?.opl2}
-                                              alt=""
-                                              width={180}
-                                              height={90}
-                                            />
-                                          </td>
                                           <td>{item?.screen}</td>
-                                          {/* <td>
+                                          <td>
                                             <Link
                                               href={`/relmanage-edit?r_id=${item?.id}`}
                                               className="btn btn-icon btn-light btn-active-color-primary btn-sm me-1"
                                             >
                                               <FontAwesomeIcon icon={faPen} />
                                             </Link>
-                                          </td> */}
+                                            <button
+                                              onClick={() =>
+                                                deleteHandler(item)
+                                              }
+                                              className="btn btn-icon btn-light btn-active-color-primary btn-sm me-1"
+                                            >
+                                              <FontAwesomeIcon icon={faTrash} />
+                                            </button>
+                                          </td>
                                         </tr>
                                       ))}
                                   </tbody>

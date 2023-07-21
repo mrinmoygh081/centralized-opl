@@ -72,12 +72,17 @@ export default function Instructions() {
       `${process.env.NEXT_PUBLIC_BACKEND_API}/instructions`,
       requestOptions
     )
-      .then((response) => response.text())
+      .then((response) => response.json())
       .then(async (result) => {
         console.log(result);
-        await getData();
-        setPreviewImg([]);
-        setSelectedFiles([]);
+        if (result.status) {
+          await getData();
+          setPreviewImg([]);
+          setSelectedFiles([]);
+          toast.success("Image saved successfully");
+        } else {
+          toast.error("Image is not uploaded");
+        }
       })
       .catch((error) => console.log("error", error));
   };

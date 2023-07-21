@@ -9,20 +9,17 @@ import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 
-export default function Products() {
+export default function Clients() {
   const { loginToken } = useSelector((state) => state.authReducer);
   const { push } = useRouter();
   const [fetchData, setFetchData] = useState(null);
-  const [clientData, setClientData] = useState(null);
   const [addForm, setAddForm] = useState({
     name: "",
-    product_id: "",
-    client_id: 0,
+    client_id: "",
   });
   const [editForm, setEditForm] = useState({
-    product_name: "",
-    product_id: "",
-    client_id: 0,
+    name: "",
+    client_id: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +35,7 @@ export default function Products() {
 
   const getData = async () => {
     setIsLoading(true);
-    const data = await getAPI("products", null);
+    const data = await getAPI("clients", null);
     if (data?.status) {
       setFetchData(data?.data);
       setIsLoading(false);
@@ -47,41 +44,27 @@ export default function Products() {
       toast.error("Something went wrong", data?.message);
     }
   };
-
-  const getClientData = async () => {
-    setIsLoading(true);
-    const data = await getAPI("clients", null);
-    if (data?.status) {
-      setClientData(data?.data);
-      setIsLoading(false);
-    } else {
-      setIsLoading(false);
-      toast.error("Something went wrong", data?.message);
-    }
-  };
-
   useEffect(() => {
     getData();
-    getClientData();
   }, []);
 
   const editIcon = (item) => {
+    console.log(item);
     setEditForm(item);
   };
 
   const addBtn = async () => {
     if (addForm?.name !== "") {
-      const data = await postAPI("products", addForm, null);
+      const data = await postAPI("clients", addForm, null);
       if (data?.status) {
-        toast.success("Product is added succesfully");
+        toast.success("Client is added succesfully");
         await getData();
         setAddForm({
           name: "",
-          product_id: "",
-          client_id: 0,
+          client_id: "",
         });
       } else {
-        toast.error(`Product is not added. ${data?.message}`);
+        toast.error(`Client is not added. ${data?.message}`);
       }
     } else {
       toast.error("Please fill all the fields");
@@ -89,19 +72,17 @@ export default function Products() {
   };
 
   const updateBtn = async () => {
-    if (editForm?.product_name !== "" && editForm?.client_id !== 0) {
-      console.log(editForm);
-      const data = await putAPI("products", editForm, null);
+    if (editForm?.name !== "") {
+      const data = await putAPI("clients", editForm, null);
       if (data?.status) {
-        toast.success("Product is updated succesfully");
+        toast.success("Client is updated succesfully");
         await getData();
         setEditForm({
-          product_name: "",
-          product_id: "",
-          client_id: 0,
+          name: "",
+          client_id: "",
         });
       } else {
-        toast.error(`Product is not updated. ${data?.message}`);
+        toast.error(`Client is not updated. ${data?.message}`);
       }
     } else {
       toast.error("Please fill all the fields");
@@ -131,15 +112,13 @@ export default function Products() {
                     <div className="row g-5 g-xl-8">
                       <div className="col-md-6 col-12">
                         <div className="screen_header shadow">
-                          <h1>Add Product</h1>
+                          <h1>Add Client</h1>
                           <div className="pt-5">
-                            <label htmlFor="productLineName">
-                              Product Name
-                            </label>
+                            <label htmlFor="clientName">Client Name</label>
                             <input
                               type="text"
                               className="form-control pb-2"
-                              id="productLineName"
+                              id="clienteName"
                               value={addForm?.name}
                               onChange={(e) =>
                                 setAddForm({
@@ -148,26 +127,6 @@ export default function Products() {
                                 })
                               }
                             />
-                            <div className="choose pt-5">
-                              <label htmlFor="client">Choose Clients</label>
-                              <select
-                                id="client"
-                                onChange={(e) =>
-                                  setAddForm({
-                                    ...addForm,
-                                    client_id: e.target.value,
-                                  })
-                                }
-                              >
-                                <option value={0}>Choose Clients</option>
-                                {clientData &&
-                                  clientData.map((item, index) => (
-                                    <option key={index} value={item?.client_id}>
-                                      {item?.name}
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
                             <div className="text-start py-3">
                               <button
                                 onClick={addBtn}
@@ -178,50 +137,23 @@ export default function Products() {
                             </div>
                           </div>
                         </div>
-                        {editForm?.product_id !== "" && (
+                        {editForm?.client_id !== "" && (
                           <div className="screen_header shadow">
-                            <h1>EDIT Products</h1>
+                            <h1>EDIT Clients</h1>
                             <div className="pt-5">
-                              <label htmlFor="productName">Products</label>
+                              <label htmlFor="clientName">Clients</label>
                               <input
                                 type="text"
                                 className="form-control pb-2"
-                                id="productName"
-                                value={editForm?.product_name}
+                                id="clientName"
+                                value={editForm?.name}
                                 onChange={(e) =>
                                   setEditForm({
                                     ...editForm,
-                                    product_name: e.target.value,
+                                    name: e.target.value,
                                   })
                                 }
                               />
-                              <div className="choose pt-5">
-                                <label htmlFor="client">Choose Clients</label>
-                                <select
-                                  id="client"
-                                  onChange={(e) =>
-                                    setEditForm({
-                                      ...editForm,
-                                      client_id: e.target.value,
-                                    })
-                                  }
-                                >
-                                  <option value={0}>Choose Clients</option>
-                                  {clientData &&
-                                    clientData.map((item, index) => (
-                                      <option
-                                        key={index}
-                                        value={item?.client_id}
-                                        selected={
-                                          item?.client_id ===
-                                          editForm?.client_id
-                                        }
-                                      >
-                                        {item?.name}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
                               <div className="text-start py-3">
                                 <button
                                   onClick={updateBtn}
@@ -239,10 +171,10 @@ export default function Products() {
                           <div className="card-header border-0 pt-5">
                             <h3 className="card-title align-items-start flex-column">
                               <span className="card-label fw-bold fs-3 mb-1">
-                                Products
+                                Clients
                               </span>
                               <span className="text-muted mt-1 fw-semibold fs-7">
-                                Total {fetchData && fetchData.length} Products
+                                Total {fetchData && fetchData.length} Clients
                               </span>
                             </h3>
                           </div>
@@ -252,8 +184,7 @@ export default function Products() {
                                 <table className="table table-striped table-bordered table_height">
                                   <thead>
                                     <tr className="border-0">
-                                      <th className=" min-w-150px">Products</th>
-                                      <th>Clients</th>
+                                      <th className=" min-w-150px">Clients</th>
                                       <th className=" min-w-140px">Action</th>
                                     </tr>
                                   </thead>
@@ -262,10 +193,7 @@ export default function Products() {
                                       fetchData.map((item, index) => (
                                         <tr key={index}>
                                           <td className="fw-semibold">
-                                            {item?.product_name}
-                                          </td>
-                                          <td className="fw-semibold">
-                                            {item?.client_name}
+                                            {item?.name}
                                           </td>
                                           <td>
                                             <button

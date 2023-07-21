@@ -9,8 +9,8 @@ export const masterMenuData = [
     link: "#",
     subMenu: [
       {
-        title: "Product Lines",
-        link: "/productlines",
+        title: "Clients",
+        link: "/clients",
       },
       {
         title: "Products",

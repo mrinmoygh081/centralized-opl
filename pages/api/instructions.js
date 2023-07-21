@@ -82,15 +82,23 @@ const handler = async (req, res) => {
         });
       });
 
-      console.log(data);
-
+      let daa = data.file;
+      let isArr = Object.prototype.toString.call(daa) == "[object Array]";
       let sql = "INSERT INTO instructions SET instruction_img=?";
-      let r = await data?.file.map(async (item, i) => {
-        return await query({
-          query: sql,
-          values: [item.name],
+
+      if (isArr) {
+        let r = await data?.file.map(async (item, i) => {
+          return await query({
+            query: sql,
+            values: [item.name],
+          });
         });
-      });
+      } else {
+        let r = query({
+          query: sql,
+          values: [data?.file?.name],
+        });
+      }
       sendRes(res, true, 200, "Uploaded", data, null);
     } catch (error) {
       console.log(error);

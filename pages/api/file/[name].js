@@ -19,11 +19,26 @@ const handler = async (req, res) => {
     // if (req?.query?.name == 2) {
     //   fileName = "2.png";
     // }
-    fileName = result?.data[0]?.current_img || "1688110888764-1temp.png";
+    console.log("query", req.query.name, result);
+    fileName = result?.data[0]?.current_img || "1689667309274-1temp.png";
+    // fileName = "1689667563657-3download.jpg";
+
+    let fileExtension = fileName.replace(/^.*\./, "");
+    let imgType;
+    console.log(fileExtension);
+    if (fileExtension == "jpg") {
+      imgType = "image/jpg";
+    } else if (fileExtension == "jpeg") {
+      imgType = "image/jpeg";
+    } else if (fileExtension == "png") {
+      imgType = "image/png";
+    }
+
+    res.setHeader("Content-Type", imgType);
+
     let filePath = await path.resolve("./public/uploads/", fileName);
     let imageBuffer = await fs.readFileSync(filePath);
 
-    res.setHeader("Content-Type", "image/png");
     res.send(imageBuffer);
   }
 };

@@ -99,3 +99,7 @@
 .table_height tbody.img_tbody tr {
   width: 25%;
 }
+.table_center {
+  text-align: center;
+  vertical-align: middle;
+}

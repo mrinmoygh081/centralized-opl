@@ -23,10 +23,14 @@ export default function RelManagementEdit() {
   const [partsData, setPartsData] = useState(null);
   const [productsData, setProductsData] = useState(null);
   const [imagesData, setImagesData] = useState(null);
+  const [clientsData, setClientsData] = useState(null);
   const [selected, setSelected] = useState({
+    client: "",
+    client_id: "",
     product: "",
+    product_id: "",
     parts: "",
-    image: "",
+    opl_id: "",
     screens: "",
     shifts: "",
     product_rel_id: "",
@@ -47,19 +51,19 @@ export default function RelManagementEdit() {
 
   useEffect(() => {
     (async () => {
+      let clients = await getAPI("clients", null);
+      let clientsOptions = [];
+      clients?.data.map((item) => {
+        clientsOptions.push({ value: item.client_id, label: item.name });
+      });
+      setClientsData(clientsOptions);
+
       let screen = await getAPI("screens", null);
       let scOptions = [];
       screen?.data.map((item) => {
         scOptions.push({ value: item.screen_ip, label: item.screen_name });
       });
       setScreenData(scOptions);
-
-      let products = await getAPI("products", null);
-      let productsOptions = [];
-      products?.data.map((item) => {
-        productsOptions.push({ value: item.product_id, label: item.name });
-      });
-      setProductsData(productsOptions);
 
       let shifts = await getAPI("shifts", null);
       let shiftsOptions = [];
@@ -77,8 +81,11 @@ export default function RelManagementEdit() {
 
   useEffect(() => {
     (async () => {
-      if (selected?.product !== "" && selected?.product !== undefined) {
-        let parts = await getAPI(`partsForProducts/${selected?.product}`, null);
+      if (selected?.product_id !== "" && selected?.product_id !== undefined) {
+        let parts = await getAPI(
+          `partsForProducts/${selected?.product_id}`,
+          null
+        );
         let partsOptions = [];
         parts?.data.map((item) => {
           partsOptions.push({
@@ -89,7 +96,25 @@ export default function RelManagementEdit() {
         setPartsData(partsOptions);
       }
     })();
-  }, [selected]);
+  }, [selected?.product_id]);
+
+  useEffect(() => {
+    (async () => {
+      if (selected?.client_id !== "" && selected?.client_id !== undefined) {
+        let products = await postAPI("productByClient", {
+          client_id: selected?.client_id,
+        });
+        let productsOptions = [];
+        products?.data.map((item) => {
+          productsOptions.push({
+            value: item.product_id,
+            label: item.product_name,
+          });
+        });
+        setProductsData(productsOptions);
+      }
+    })();
+  }, [selected?.client_id]);
 
   useEffect(() => {
     (async function () {
@@ -103,6 +128,7 @@ export default function RelManagementEdit() {
 
   const editOPLHandler = async () => {
     if (
+      selected?.client !== "" &&
       selected?.product !== "" &&
       selected?.parts !== "" &&
       selected?.screens !== "" &&
@@ -114,9 +140,10 @@ export default function RelManagementEdit() {
       if (data?.status) {
         toast.success("Product Line is updated succesfully");
         setSelected({
+          client: "",
           product: "",
           parts: "",
-          image: "",
+          opl: "",
           screens: "",
           shifts: "",
           product_rel_id: "",
@@ -172,29 +199,60 @@ export default function RelManagementEdit() {
                                         <div className="d-flex flex-column me-n7 pe-7">
                                           <div className="fv-row mb-7">
                                             <label className="required fw-bold fs-6 mb-2">
-                                              Product Name
+                                              Client
                                             </label>
-                                            {productsData &&
-                                              productsData.length > 0 &&
+                                            {clientsData &&
+                                              clientsData.length > 0 &&
                                               selected && (
                                                 <Select
                                                   components={
                                                     animatedComponents
                                                   }
                                                   defaultValue={{
-                                                    value: selected?.product_id,
-                                                    label: selected?.product,
+                                                    value: selected?.client_id,
+                                                    label: selected?.client,
                                                   }}
                                                   onChange={(res) =>
                                                     setSelected({
                                                       ...selected,
-                                                      product: res?.value,
+                                                      client: res?.label,
+                                                      client_id: res?.value,
                                                     })
                                                   }
-                                                  options={productsData}
+                                                  options={clientsData}
                                                 />
                                               )}
                                           </div>
+
+                                          {selected?.client && (
+                                            <div className="fv-row mb-7">
+                                              <label className="required fw-bold fs-6 mb-2">
+                                                Product Name
+                                              </label>
+                                              {productsData &&
+                                                productsData.length > 0 &&
+                                                selected && (
+                                                  <Select
+                                                    components={
+                                                      animatedComponents
+                                                    }
+                                                    defaultValue={{
+                                                      value:
+                                                        selected?.product_id,
+                                                      label: selected?.product,
+                                                    }}
+                                                    onChange={(res) =>
+                                                      setSelected({
+                                                        ...selected,
+                                                        product: res?.label,
+                                                        product_id: res?.value,
+                                                      })
+                                                    }
+                                                    options={productsData}
+                                                  />
+                                                )}
+                                            </div>
+                                          )}
 
                                           {selected?.product && (
                                             <div className="fv-row mb-7">
@@ -207,7 +265,8 @@ export default function RelManagementEdit() {
                                                 onChange={(res) =>
                                                   setSelected({
                                                     ...selected,
-                                                    parts: res?.value,
+                                                    parts: res?.label,
+                                                    parts_id: res?.value,
                                                   })
                                                 }
                                                 defaultValue={{
@@ -236,9 +295,8 @@ export default function RelManagementEdit() {
                                                   onChange={(res) =>
                                                     setSelected({
                                                       ...selected,
-                                                      screens: parseInt(
-                                                        res?.value
-                                                      ),
+                                                      screen_ip: res?.value,
+                                                      screen: res?.label,
                                                     })
                                                   }
                                                   options={screenData}
@@ -250,21 +308,21 @@ export default function RelManagementEdit() {
                                             <label className="required fw-bold fs-6 mb-2">
                                               Shifts
                                             </label>
-
                                             {shiftData &&
                                               shiftData.length > 0 && (
                                                 <Select
                                                   components={
                                                     animatedComponents
                                                   }
-                                                  onChange={(res) =>
+                                                  onChange={(res) => {
                                                     setSelected({
                                                       ...selected,
-                                                      shifts: parseInt(
+                                                      shift_id: parseInt(
                                                         res?.value
                                                       ),
-                                                    })
-                                                  }
+                                                      shift: res.label,
+                                                    });
+                                                  }}
                                                   defaultValue={{
                                                     value: selected?.shift_id,
                                                     label: selected?.shift,
@@ -289,17 +347,15 @@ export default function RelManagementEdit() {
                                                     >
                                                       <div
                                                         className={
-                                                          selected.image ==
-                                                            item?.instruction_id ||
                                                           item?.instruction_id ==
-                                                            selected?.opl_id
+                                                          selected?.opl_id
                                                             ? "image_list active"
                                                             : "image_list"
                                                         }
                                                         onClick={() =>
                                                           setSelected({
                                                             ...selected,
-                                                            image:
+                                                            opl_id:
                                                               item?.instruction_id,
                                                           })
                                                         }

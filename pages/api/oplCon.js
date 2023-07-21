@@ -3,12 +3,14 @@ var amqp = require("amqplib/callback_api");
 
 const handler = async (req, res) => {
   if (req.method === "GET") {
-    amqp.connect("amqp://10.12.1.151", function (error0, connection) {
+    amqp.connect("amqp://10.12.1.151", async function (error0, connection) {
       if (error0) {
+        sendRes(res, false, 400, "RabbitMQ not working!", error0, null);
         throw error0;
       }
-      connection.createChannel(function (error1, channel) {
+      await connection.createChannel(function (error1, channel) {
         if (error1) {
+          sendRes(res, false, 400, "Connection not established!", error1, null);
           throw error1;
         }
 
@@ -25,8 +27,8 @@ const handler = async (req, res) => {
       setTimeout(function () {
         connection.close();
       }, 500);
+      sendRes(res, true, 200, "Successfully Send", req.body, null);
     });
-    sendRes(res, true, 200, "Successfully Send", req.body, null);
   }
 };
 
