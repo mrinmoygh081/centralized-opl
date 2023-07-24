@@ -1,3 +1,8 @@
+label {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
 .content {
   width: 95%;
   margin: auto;
@@ -79,6 +84,12 @@
   width: 100%;
   height: auto;
 }
+.customer_feedback .previewImg {
+  width: 100%;
+  height: 200px;
+  padding: 10px;
+  position: relative;
+}
 .image_list {
   padding: 10px;
   border: 1px solid #ccc;
@@ -102,4 +113,24 @@
 .table_center {
   text-align: center;
   vertical-align: middle;
+}
+.popup {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  background: #fff;
+  z-index: 99;
+  border-radius: 10px;
+  box-shadow: 1px 1px 16pc #1d1d1d;
+}
+.popup .card .row {
+  padding: 0 20px;
+  max-height: 75vh;
+  overflow-y: scroll;
+}
+.popup.active {
+  display: block;
 }

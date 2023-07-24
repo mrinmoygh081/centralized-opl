@@ -18,10 +18,21 @@ import "react-datetime-picker/dist/DateTimePicker.css";
 import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
 
-const options = [
-  { value: "Screen1", label: "Screen1" },
-  { value: "Screen2", label: "Screen2" },
-  { value: "Screen3", label: "Screen3" },
+const durationOptions = [
+  { value: "", label: "Choose Duration" },
+  { value: "10", label: "10 Seconds" },
+  { value: "30", label: "30 Seconds" },
+  { value: "60", label: "60 Seconds" },
+  { value: "120", label: "120 Seconds" },
+];
+
+const timeGapOptions = [
+  { value: "0", label: "Choose Time" },
+  { value: "5", label: "5 Minutes" },
+  { value: "10", label: "10 Minutes" },
+  { value: "30", label: "30 Minutes" },
+  { value: "60", label: "60 Minutes" },
+  { value: "120", label: "120 Minutes" },
 ];
 
 const animatedComponents = makeAnimated();
@@ -33,6 +44,7 @@ export default function Home() {
   const [products, setProducts] = useState(null);
   const [clients, setClients] = useState(null);
   const [shifts, setShifts] = useState(null);
+  const [imagesData, setImagesData] = useState(null);
   const [selected, setSelected] = useState({
     product_id: "",
     shift_id: "",
@@ -40,13 +52,21 @@ export default function Home() {
   });
   const [oplData, setOplData] = useState(null);
   const [dateTimeNow, setDateTimeNow] = useState();
+  const [screenOptions, setScreenOptions] = useState(null);
+  const [isPopup, setIsPopup] = useState({
+    isPop: false,
+    itemNo: null,
+  });
   const [customerFeedback, setCustomerFeedback] = useState([
     {
       img: "",
       screens: [],
     },
   ]);
-  const [previewImg, setPreviewImg] = useState([]);
+  const [custTime, setCustTime] = useState({
+    duration: "",
+    time: "",
+  });
 
   useEffect(() => {
     (async () => {
@@ -69,9 +89,31 @@ export default function Home() {
     })();
   }, [selected]);
 
+  const getImagesData = async () => {
+    setIsLoading(true);
+    const data = await getAPI("instructions", null);
+    if (data?.status) {
+      setImagesData(data?.data);
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
+      toast.error(`Something went wrong. ${data?.message}`);
+    }
+  };
+
   useEffect(() => {
     let dateTime = getDateTimeNow();
     setDateTimeNow(dateTime);
+
+    (async () => {
+      await getImagesData();
+      let screen = await getAPI("screens", null);
+      let scOptions = [{ value: "", label: "Choose Screens" }];
+      screen?.data.map((item) => {
+        scOptions.push({ value: item.screen_ip, label: item.screen_name });
+      });
+      setScreenOptions(scOptions);
+    })();
   }, []);
 
   const getData = async () => {
@@ -130,13 +172,6 @@ export default function Home() {
 
   const OPLHandler = async (toggle) => {
     let oplSendFile = oplData.map((item, index) => {
-      // let c_img;
-      // if (toggle) {
-      //   c_img = item?.opl;
-      // } else {
-      //   c_img = item?.opl2;
-      // }
-      // console.log(c_img);
       return {
         current_shift: item?.shift_id,
         current_screen: item?.screen_ip,
@@ -149,7 +184,7 @@ export default function Home() {
     await oplSendFile.map(async (item, index) => {
       const data = await postAPI("current", item, null);
       if (data?.status) {
-        toast.success(`Image ${index + 1} updated succesfully`);
+        // toast.success(`Image ${index + 1} updated succesfully`);
         // call opl
         await callOPL(item);
       } else {
@@ -215,15 +250,83 @@ export default function Home() {
       ...customerFeedback,
       {
         img: "",
-        screens: [],
+        screens: null,
       },
     ]);
+  };
+
+  // const handleImages = async (event, index) => {
+  //   console.log(event.target.files[0], index);
+  //   let cusFeeds = [...customerFeedback];
+  //   let item = cusFeeds[index];
+  //   cusFeeds[index] = { ...item, img: event.target.files[0] };
+  //   let preview = [...previewImg];
+  //   preview[index] = URL.createObjectURL(event.target.files[0]);
+  //   setPreviewImg(preview);
+  //   setCustomerFeedback(cusFeeds);
+  // };
+  const handleSelectImg = async (it) => {
+    let cusFeeds = [...customerFeedback];
+    let item = cusFeeds[isPopup.itemNo];
+    cusFeeds[isPopup.itemNo] = { ...item, img: it?.instruction_img };
+    setCustomerFeedback(cusFeeds);
+    setIsPopup({
+      isPop: false,
+      itemNo: null,
+    });
   };
 
   const closeOne = async (index) => {
     const rows = [...customerFeedback];
     rows.splice(index, 1);
     setCustomerFeedback(rows);
+  };
+
+  const handleScreens = (e, index) => {
+    const rows = [...customerFeedback];
+    let item = rows[index];
+    rows[index] = { ...item, screens: e.value };
+    setCustomerFeedback(rows);
+  };
+
+  const sendFeedback = async () => {
+    if (custTime.time !== "") {
+      if (custTime.duration !== "") {
+        if (
+          customerFeedback[0]?.img !== "" &&
+          customerFeedback[0].screens > 0
+        ) {
+          let oplSendFile = customerFeedback.map((item, index) => {
+            return {
+              current_shift: 0,
+              current_screen: item?.screens,
+              current_img: item?.img,
+              current_product: 0,
+            };
+          });
+
+          // add data to current table
+          await oplSendFile.map(async (item, index) => {
+            const data = await postAPI("current_feed", item, null);
+            if (data?.status) {
+              // toast.success(`Image ${index + 1} updated succesfully`);
+              // call opl
+              await callOPL(item);
+            } else {
+              toast.error(`Product is not added. ${data?.message}`);
+            }
+          });
+        } else {
+          toast.error(
+            "Please select the image and screens for customer feedback!"
+          );
+        }
+      } else {
+        toast.error("Please select the duration!");
+      }
+    } else {
+      toast.error("Please select the Time Gap!");
+    }
   };
 
   return (
@@ -424,7 +527,7 @@ export default function Home() {
                         </>
                       )}
 
-                      <div className="col-12">
+                      <div className="col-12 customer_feedback">
                         <div className="card card-xxl-stretch mb-5 mb-xxl-8">
                           <div className="card-header border-0 pt-5 justify-content-between">
                             <h3 className="card-title align-items-start flex-column">
@@ -433,13 +536,32 @@ export default function Home() {
                               </span>
                             </h3>
                             <div>
-                              <input
-                                type="datetime-local"
-                                className="form-control pb-2"
-                                id="productpartname"
-                                accept=".jpg, .png, .jpeg, .webp"
-                                onChange={(e) => handleImages(e)}
-                                multiple={true}
+                              <label htmlFor="duration">Duration</label>
+                              <Select
+                                closeMenuOnSelect={true}
+                                components={animatedComponents}
+                                defaultValue={[durationOptions[0]]}
+                                isMulti={false}
+                                options={durationOptions}
+                                onChange={(e) =>
+                                  setCustTime({
+                                    ...custTime,
+                                    duration: e.value,
+                                  })
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor="time-gap">Time Gap</label>
+                              <Select
+                                closeMenuOnSelect={true}
+                                components={animatedComponents}
+                                defaultValue={[timeGapOptions[0]]}
+                                isMulti={false}
+                                options={timeGapOptions}
+                                onChange={(e) =>
+                                  setCustTime({ ...custTime, time: e.value })
+                                }
                               />
                             </div>
                           </div>
@@ -460,73 +582,80 @@ export default function Home() {
                                   <tbody style={{ maxHeight: "100%" }}>
                                     {customerFeedback &&
                                       customerFeedback.map((item, index) => (
-                                        <>
-                                          <tr>
-                                            <td className="min-w-500px table_center">
-                                              <input
-                                                type="file"
-                                                className="form-control pb-2"
-                                                id="productpartname"
-                                                accept=".jpg, .png, .jpeg"
-                                                onChange={(e) =>
-                                                  handleImages(e)
-                                                }
-                                                multiple={true}
-                                              />
-                                              {previewImg &&
-                                                previewImg.length > 0 && (
-                                                  <div className="previewDiv shadow">
-                                                    {previewImg.map(
-                                                      (item, index) => (
-                                                        <Fragment key={index}>
-                                                          <div className="previewImg">
-                                                            <Image
-                                                              src={item}
-                                                              alt="preview image"
-                                                              width={200}
-                                                              height={100}
-                                                            />
-                                                          </div>
-                                                        </Fragment>
-                                                      )
-                                                    )}
-                                                  </div>
-                                                )}
-                                              <Image
-                                                src={"/images/process.png"}
-                                                alt=""
-                                                width={300}
-                                                height={200}
-                                              />
-                                            </td>
-                                            <td className="table_center">
+                                        <tr key={index}>
+                                          <td className="min-w-500px table_center">
+                                            {/* <input
+                                              type="file"
+                                              className="form-control pb-2"
+                                              id="feedbackImg"
+                                              accept=".jpg, .png, .jpeg"
+                                              onChange={(e) =>
+                                                handleImages(e, index)
+                                              }
+                                              multiple={false}
+                                            /> */}
+                                            <button
+                                              className="btn fw-bold btn-primary"
+                                              onClick={() =>
+                                                setIsPopup({
+                                                  isPop: true,
+                                                  itemNo: index,
+                                                })
+                                              }
+                                            >
+                                              Choose Image File
+                                            </button>
+                                            {item && item.img != "" && (
+                                              <div className="previewDiv shadow">
+                                                <div className="previewImg">
+                                                  <Image
+                                                    loader={({ src }) =>
+                                                      `/uploads/${src}`
+                                                    }
+                                                    src={item.img}
+                                                    alt="preview image"
+                                                    layout="fill"
+                                                    objectFit="contain"
+                                                  />
+                                                </div>
+                                              </div>
+                                            )}
+                                          </td>
+
+                                          <td className="table_center">
+                                            {screenOptions && (
                                               <Select
-                                                closeMenuOnSelect={false}
+                                                closeMenuOnSelect={true}
                                                 components={animatedComponents}
-                                                defaultValue={[options[0]]}
-                                                isMulti
-                                                options={options}
+                                                defaultValue={[
+                                                  screenOptions[0],
+                                                ]}
+                                                isMulti={false}
+                                                options={screenOptions}
+                                                onChange={(e) =>
+                                                  handleScreens(e, index)
+                                                }
                                               />
-                                            </td>
-                                            <td className="table_center">
-                                              {customerFeedback &&
-                                                customerFeedback.length > 1 && (
-                                                  <>
-                                                    <button
-                                                      onClick={() =>
-                                                        closeOne(index)
-                                                      }
-                                                      className="btn fw-bold btn-danger"
-                                                    >
-                                                      <FontAwesomeIcon
-                                                        icon={faClose}
-                                                      />
-                                                    </button>
-                                                  </>
-                                                )}
-                                            </td>
-                                          </tr>
-                                        </>
+                                            )}
+                                          </td>
+                                          <td className="table_center">
+                                            {customerFeedback &&
+                                              customerFeedback.length > 1 && (
+                                                <>
+                                                  <button
+                                                    onClick={() =>
+                                                      closeOne(index)
+                                                    }
+                                                    className="btn fw-bold btn-danger"
+                                                  >
+                                                    <FontAwesomeIcon
+                                                      icon={faClose}
+                                                    />
+                                                  </button>
+                                                </>
+                                              )}
+                                          </td>
+                                        </tr>
                                       ))}
                                   </tbody>
                                 </table>
@@ -537,7 +666,10 @@ export default function Home() {
                                   >
                                     ADD NEW
                                   </button>
-                                  <button className="btn fw-bold btn-primary">
+                                  <button
+                                    onClick={sendFeedback}
+                                    className="btn fw-bold btn-primary"
+                                  >
                                     Send
                                   </button>
                                 </div>
@@ -550,6 +682,65 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+        <div className={isPopup.isPop ? "popup active" : "popup"}>
+          <div className="card card-xxl-stretch mb-5 mb-xxl-8">
+            <div className="card-header border-0 pt-5">
+              <h3 className="card-title align-items-start flex-column">
+                <span className="card-label fw-bold fs-3 mb-1">
+                  Instructions
+                </span>
+                <span className="text-muted mt-1 fw-semibold fs-7">
+                  {imagesData && `Total ${imagesData.length} Instructions`}
+                </span>
+              </h3>
+              <button
+                className="btn fw-bold btn-danger"
+                onClick={() =>
+                  setIsPopup({
+                    isPop: false,
+                    itemNo: null,
+                  })
+                }
+              >
+                Close
+              </button>
+            </div>
+            <div className="row">
+              {imagesData &&
+                imagesData.length > 0 &&
+                imagesData.map((item, index) => (
+                  <div className="col-12 col-md-3" key={index}>
+                    <div
+                      className={
+                        selected.image == item?.instruction_id
+                          ? "image_list active"
+                          : "image_list"
+                      }
+                      onClick={() => handleSelectImg(item)}
+                    >
+                      <Image
+                        loader={({ src }) => {
+                          return `uploads/${src}`;
+                        }}
+                        src={item?.instruction_img}
+                        alt=""
+                        width={300}
+                        height={150}
+                      />
+                    </div>
+                  </div>
+                ))}
+              {/* <div className="col-12">
+                <button
+                  className="btn fw-bold btn-primary"
+                  onClick={handleSelectImg}
+                >
+                  Select
+                </button>
+              </div> */}
             </div>
           </div>
         </div>
