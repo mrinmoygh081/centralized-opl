@@ -2,7 +2,7 @@ const axios = require("axios");
 import { toast } from "react-toastify";
 
 export const postAPI = (path, body, token) => {
-  console.log(`${process.env.NEXT_PUBLIC_BACKEND_API}/${path}`);
+  // console.log(`${process.env.NEXT_PUBLIC_BACKEND_API}/${path}`);
 
   let config = {
     method: "post",

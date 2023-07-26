@@ -19,13 +19,13 @@ const handler = async (req, res) => {
     // if (req?.query?.name == 2) {
     //   fileName = "2.png";
     // }
-    console.log("query", req.query.name, result);
+    // console.log("query", req.query.name, result);
     fileName = result?.data[0]?.current_img || "1689667309274-1temp.png";
     // fileName = "1689667563657-3download.jpg";
 
     let fileExtension = fileName.replace(/^.*\./, "");
     let imgType;
-    console.log(fileExtension);
+    // console.log(fileExtension);
     if (fileExtension == "jpg") {
       imgType = "image/jpg";
     } else if (fileExtension == "jpeg") {

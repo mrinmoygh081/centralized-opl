@@ -27,7 +27,8 @@ const durationOptions = [
 ];
 
 const timeGapOptions = [
-  { value: "0", label: "Choose Time" },
+  { value: "", label: "Choose Time" },
+  { value: "1", label: "1 Minute" },
   { value: "5", label: "5 Minutes" },
   { value: "10", label: "10 Minutes" },
   { value: "30", label: "30 Minutes" },
@@ -170,7 +171,7 @@ export default function Home() {
     })();
   }, [loginToken, router]);
 
-  const OPLHandler = async (toggle) => {
+  const OPLHandler = async () => {
     let oplSendFile = oplData.map((item, index) => {
       return {
         current_shift: item?.shift_id,
@@ -186,36 +187,18 @@ export default function Home() {
       if (data?.status) {
         // toast.success(`Image ${index + 1} updated succesfully`);
         // call opl
-        await callOPL(item);
+        await callOPL();
       } else {
         toast.error(`Product is not added. ${data?.message}`);
       }
     });
   };
 
-  // const [cron, setCron] = useState(null);
-  // const cronJobStart = (toggle) => {
-  //   setCron(
-  //     new CronJob(
-  //       "*/10 * * * * *",
-  //       async function () {
-  //         console.log("Hello");
-  //         await OPLHandler(toggle);
-  //         toggle = !toggle;
-  //       },
-  //       null,
-  //       true,
-  //       "America/Los_Angeles"
-  //     )
-  //   );
-  // };
-
-  const sendHandler = async (toggle) => {
-    await OPLHandler(toggle);
-    // cronJobStart(toggle);
+  const sendHandler = async () => {
+    await OPLHandler();
   };
 
-  const callOPL = async (item) => {
+  const callOPL = async () => {
     let requestOptions = {
       method: "GET",
       redirect: "follow",
@@ -225,25 +208,15 @@ export default function Home() {
       .then((response) => response.json())
       .then((result) => {
         if (result?.status) {
-          toast.success(`Screen ID ${item?.current_screen} sent successfully`);
+          toast.success(`OPL has been sent`);
         } else {
-          toast.error(`Screen ID ${item?.current_screen} cannot be sent`);
+          toast.error(`OPL cannot be sent`);
         }
       })
       .catch((error) => console.log("error", error));
     // });
   };
 
-  const stopOPL = () => {};
-
-  // const stopCronJob = async () => {
-  //   if (cron) {
-  //     cron.stop();
-  //     toast.success("Process has been stopped!");
-  //   } else {
-  //     toast.error("Please send the process first!");
-  //   }
-  // };
   // Customer Feedback
   const addNew = async () => {
     setCustomerFeedback([
@@ -255,16 +228,6 @@ export default function Home() {
     ]);
   };
 
-  // const handleImages = async (event, index) => {
-  //   console.log(event.target.files[0], index);
-  //   let cusFeeds = [...customerFeedback];
-  //   let item = cusFeeds[index];
-  //   cusFeeds[index] = { ...item, img: event.target.files[0] };
-  //   let preview = [...previewImg];
-  //   preview[index] = URL.createObjectURL(event.target.files[0]);
-  //   setPreviewImg(preview);
-  //   setCustomerFeedback(cusFeeds);
-  // };
   const handleSelectImg = async (it) => {
     let cusFeeds = [...customerFeedback];
     let item = cusFeeds[isPopup.itemNo];
@@ -290,32 +253,68 @@ export default function Home() {
   };
 
   const sendFeedback = async () => {
+    let oplSendFile = customerFeedback.map((item, index) => {
+      return {
+        current_shift: 0,
+        current_screen: item?.screens,
+        current_img: item?.img,
+        current_product: 0,
+      };
+    });
+
+    // add data to current table
+    let isDataToDB = false;
+    await Promise.all(
+      oplSendFile.map(async (item) => {
+        const data = await postAPI("current_feed", item, null);
+        if (data?.status) {
+          // toast.success(`Image ${index + 1} updated succesfully`);
+          // call opl
+          isDataToDB = true;
+        } else {
+          isDataToDB = false;
+          toast.error(`Product is not updated. ${data?.message}`);
+        }
+      })
+    );
+
+    const oplNum = await getAPI("oplGetLength", null);
+    if (isDataToDB) {
+      for (let i = 0; i < oplNum?.data; i++) {
+        await callOPL();
+      }
+    }
+  };
+
+  // Cronjobs
+  const [cron, setCron] = useState(null);
+  const cronStartFeed = () => {
+    let dursn = parseInt(custTime?.duration) * 1000;
+    setCron(
+      new CronJob(
+        `*/${parseInt(custTime?.time)} * * * *`,
+        async function () {
+          await sendFeedback();
+          setTimeout(async () => {
+            await OPLHandler();
+          }, dursn);
+        },
+        null,
+        true,
+        "America/Los_Angeles"
+      )
+    );
+  };
+
+  const sendFeedHandler = async () => {
     if (custTime.time !== "") {
       if (custTime.duration !== "") {
         if (
           customerFeedback[0]?.img !== "" &&
           customerFeedback[0].screens > 0
         ) {
-          let oplSendFile = customerFeedback.map((item, index) => {
-            return {
-              current_shift: 0,
-              current_screen: item?.screens,
-              current_img: item?.img,
-              current_product: 0,
-            };
-          });
-
-          // add data to current table
-          await oplSendFile.map(async (item, index) => {
-            const data = await postAPI("current_feed", item, null);
-            if (data?.status) {
-              // toast.success(`Image ${index + 1} updated succesfully`);
-              // call opl
-              await callOPL(item);
-            } else {
-              toast.error(`Product is not added. ${data?.message}`);
-            }
-          });
+          await OPLHandler();
+          await cronStartFeed();
         } else {
           toast.error(
             "Please select the image and screens for customer feedback!"
@@ -326,6 +325,15 @@ export default function Home() {
       }
     } else {
       toast.error("Please select the Time Gap!");
+    }
+  };
+
+  const stopCronJob = async () => {
+    if (cron) {
+      cron.stop();
+      toast.info("Process has been stopped!");
+    } else {
+      toast.error("Please send the process first!");
     }
   };
 
@@ -506,7 +514,7 @@ export default function Home() {
                                       <div className="text-center py-3">
                                         <button
                                           className="btn fw-bold btn-primary mx-3"
-                                          onClick={() => sendHandler(true)}
+                                          onClick={() => sendHandler()}
                                         >
                                           Send
                                         </button>
@@ -666,12 +674,20 @@ export default function Home() {
                                   >
                                     ADD NEW
                                   </button>
-                                  <button
-                                    onClick={sendFeedback}
-                                    className="btn fw-bold btn-primary"
-                                  >
-                                    Send
-                                  </button>
+                                  <div>
+                                    <button
+                                      className="btn fw-bold btn-primary mx-3"
+                                      onClick={() => stopCronJob()}
+                                    >
+                                      Stop
+                                    </button>
+                                    <button
+                                      onClick={sendFeedHandler}
+                                      className="btn fw-bold btn-primary"
+                                    >
+                                      Send
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             </div>
