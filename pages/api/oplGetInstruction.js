@@ -11,7 +11,6 @@ const handler = async (req, res) => {
         values: [current_screen],
       });
       if (result.length > 0) {
-        console.log(result);
         sendRes(res, true, 200, "instructions Data", result, null);
       } else {
         sendRes(res, false, 200, "No Record Found", result, null);

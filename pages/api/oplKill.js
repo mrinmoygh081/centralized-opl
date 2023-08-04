@@ -22,7 +22,7 @@ const handler = async (req, res) => {
         });
         channel.sendToQueue(queue, Buffer.from(msg));
 
-        console.log(" [x] Sent %s", msg);
+        // console.log(" [x] Sent %s", msg);
       });
       setTimeout(function () {
         connection.close();

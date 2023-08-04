@@ -3,7 +3,6 @@ import { sendRes } from "@/utils/resHelper";
 
 const handler = async (req, res) => {
   if (req.method === "GET") {
-    // console.log(current_screen, "current_screen");
     try {
       const result = await query({
         query: `SELECT * FROM current`,

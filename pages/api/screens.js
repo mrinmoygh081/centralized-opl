@@ -20,7 +20,7 @@ const handler = async (req, res) => {
   }
   if (req.method === "POST") {
     const { screen_ip, screen_name } = req.body;
-    console.log("post", screen_ip, screen_name);
+
     try {
       let sql2 = "SELECT * FROM screens WHERE screen_ip = ?";
       const checkDup = await query({

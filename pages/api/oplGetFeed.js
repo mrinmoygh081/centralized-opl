@@ -4,7 +4,7 @@ import { sendRes } from "@/utils/resHelper";
 const handler = async (req, res) => {
   if (req.method === "POST") {
     const { current_screen } = req.body;
-    // console.log(current_screen, "current_screen");
+
     try {
       const result = await query({
         query: `SELECT * FROM current_feedback WHERE current_screen = ?`,
