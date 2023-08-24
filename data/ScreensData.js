@@ -9,8 +9,15 @@ export const screensData = [
   {
     id: 2,
     name: "Melting Screen",
-    user: "datacore",
+    user: "pi",
     host: "10.12.1.52",
+    password: "raspberry",
+  },
+  {
+    id: 3,
+    name: "Screen 3",
+    user: "pi",
+    host: "10.12.1.51",
     password: "raspberry",
   },
 ];

@@ -6,6 +6,7 @@ const handler = async (req, res) => {
   if (req.method === "GET") {
     try {
       screensData.map((item, index) => {
+        console.log(item);
         exec("sudo systemctl start oplclient", {
           user: item?.user,
           host: item?.host,

@@ -5,6 +5,7 @@ const handler = async (req, res) => {
   if (req.method === "POST") {
     const { image, client, parts, product, screens, shifts } = req.body;
 
+    console.log(image, client, parts, product, screens, shifts);
     try {
       let sql = `
           INSERT INTO product_rel SET client_id=?, product_id= ?, subproduct_id=?, screen_id= ?, productline_id= ?, instruction_id=?, shift_id=?

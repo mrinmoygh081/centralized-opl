@@ -172,26 +172,30 @@ export default function Home() {
   }, [loginToken, router]);
 
   const OPLHandler = async () => {
-    let oplSendFile = oplData.map((item, index) => {
-      return {
-        current_shift: item?.shift_id,
-        current_screen: item?.screen_ip,
-        current_img: item?.opl,
-        current_product: item?.product_id,
-      };
-    });
+    if (oplData) {
+      let oplSendFile = oplData.map((item, index) => {
+        return {
+          current_shift: item?.shift_id,
+          current_screen: item?.screen_ip,
+          current_img: item?.opl,
+          current_product: item?.product_id,
+        };
+      });
 
-    // add data to current table
-    await oplSendFile.map(async (item, index) => {
-      const data = await postAPI("current", item, null);
-      if (data?.status) {
-        // toast.success(`Image ${index + 1} updated succesfully`);
-        // call opl
-        await callOPL();
-      } else {
-        toast.error(`Product is not added. ${data?.message}`);
-      }
-    });
+      // add data to current table
+      await oplSendFile.map(async (item, index) => {
+        const data = await postAPI("current", item, null);
+        if (data?.status) {
+          // toast.success(`Image ${index + 1} updated succesfully`);
+          // call opl
+          await callOPL();
+        } else {
+          toast.error(`Product is not added. ${data?.message}`);
+        }
+      });
+    } else {
+      toast.error("Please send OPL First!");
+    }
   };
 
   const sendHandler = async () => {
@@ -482,33 +486,35 @@ export default function Home() {
                                           </tr>
                                         </thead>
                                         <tbody>
-                                          {oplData.map((item, i) => (
-                                            <tr key={i}>
-                                              <td>
-                                                {item?.product} | {item?.shift}
-                                              </td>
-                                              <td className="fw-semibold">
-                                                {item?.parts}
-                                              </td>
-                                              <td>
-                                                <Image
-                                                  loader={({ src }) => {
-                                                    return `uploads/${src}`;
-                                                  }}
-                                                  src={item.opl}
-                                                  alt=""
-                                                  width={180}
-                                                  height={90}
-                                                  loading="lazy"
-                                                />
-                                              </td>
-                                              <td>
-                                                {item?.screen} <br />
-                                                Screen ID:{" "}
-                                                <b>{item?.screen_id}</b>
-                                              </td>
-                                            </tr>
-                                          ))}
+                                          {oplData &&
+                                            oplData.map((item, i) => (
+                                              <tr key={i}>
+                                                <td>
+                                                  {item?.product} |{" "}
+                                                  {item?.shift}
+                                                </td>
+                                                <td className="fw-semibold">
+                                                  {item?.parts}
+                                                </td>
+                                                <td>
+                                                  <Image
+                                                    loader={({ src }) => {
+                                                      return `uploads/${src}`;
+                                                    }}
+                                                    src={item.opl}
+                                                    alt=""
+                                                    width={180}
+                                                    height={90}
+                                                    loading="lazy"
+                                                  />
+                                                </td>
+                                                <td>
+                                                  {item?.screen} <br />
+                                                  Screen ID:{" "}
+                                                  <b>{item?.screen_id}</b>
+                                                </td>
+                                              </tr>
+                                            ))}
                                         </tbody>
                                       </table>
                                       <div className="text-center py-3">

@@ -4,7 +4,7 @@ export async function query({ query, values = [] }) {
   const db = await mysql.createConnection({
     host: "localhost",
     port: "3306",
-    user: "mrinmoy",
+    user: "root",
     password: "123456",
     database: "opl",
     multipleStatements: true,

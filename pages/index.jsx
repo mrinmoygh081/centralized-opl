@@ -48,6 +48,7 @@ export default function Home() {
 
   const checkStatus = async (item) => {
     const data = await postAPI("screenCheck", item, null);
+    console.log(data);
     if (data.status) {
       toast.success(`${item?.name} is ON!`);
     } else {
