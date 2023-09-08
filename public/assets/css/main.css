@@ -133,3 +133,15 @@ label {
 .popup.active {
   display: block;
 }
+
+/* footer */
+.footer {
+  padding: 15px 30px;
+  text-align: right;
+  margin-top: 90px;
+  border-top: 1px solid #ccc;
+  /* position: fixed;
+  bottom: 0;
+  right: 0;
+  width: calc(100% - 265px); */
+}

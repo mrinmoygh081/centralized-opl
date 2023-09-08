@@ -19,6 +19,7 @@ import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
 
 import { screensData } from "@/data/ScreensData";
+import Footer from "@/components/Footer";
 
 export default function Home() {
   const startAllScreens = async () => {
@@ -36,13 +37,13 @@ export default function Home() {
   const startScreen = async (item) => {
     const data = await postAPI("screenOn", item, null);
     if (data.status) {
-      toast.success("Screens is started!");
+      toast.success("Screen is started!");
     }
   };
   const stopScreen = async (item) => {
     const data = await postAPI("screenOff", item, null);
     if (data.status) {
-      toast.success("Screens is stopped!");
+      toast.success("Screen is stopped!");
     }
   };
 
@@ -171,6 +172,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              <Footer />
             </div>
           </div>
         </div>

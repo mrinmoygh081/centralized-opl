@@ -17,6 +17,7 @@ import DateTimePicker from "react-datetime-picker";
 import "react-datetime-picker/dist/DateTimePicker.css";
 import "react-calendar/dist/Calendar.css";
 import "react-clock/dist/Clock.css";
+import Footer from "@/components/Footer";
 
 const durationOptions = [
   { value: "", label: "Choose Duration" },
@@ -636,7 +637,7 @@ export default function Home() {
                                             )}
                                           </td>
 
-                                          <td className="table_center">
+                                          <td className="">
                                             {screenOptions && (
                                               <Select
                                                 closeMenuOnSelect={true}
@@ -704,6 +705,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+              <Footer />
             </div>
           </div>
         </div>
