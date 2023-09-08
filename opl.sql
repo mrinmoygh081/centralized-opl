@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 04, 2023 at 12:53 PM
+-- Generation Time: Sep 08, 2023 at 04:25 AM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.5
 
@@ -60,7 +60,8 @@ CREATE TABLE `current` (
 
 INSERT INTO `current` (`current_id`, `current_img`, `current_product`, `current_shift`, `current_screen`) VALUES
 (1, '1689667032816-1instruction.png', '10', '1', '1'),
-(2, '1689666518048-1OPL-Oil-Room-Setup.jpg', '10', '1', '2');
+(2, '1689666518048-1OPL-Oil-Room-Setup.jpg', '10', '1', '3'),
+(3, '1689666518048-1OPL-Oil-Room-Setup.jpg', '10', '1', '2');
 
 -- --------------------------------------------------------
 
@@ -166,7 +167,8 @@ INSERT INTO `product_rel` (`product_rel_id`, `client_id`, `product_id`, `shift_i
 (46, 2, 9, 2, 26, 2, 1, 103),
 (47, 1, 10, 1, 23, 1, 1, 105),
 (48, 1, 10, 1, 24, 2, 1, 103),
-(49, 1, 11, 2, 28, 1, 1, 103);
+(49, 1, 11, 2, 28, 1, 1, 103),
+(54, 1, 10, 1, 29, 3, 1, 103);
 
 -- --------------------------------------------------------
 
@@ -186,7 +188,8 @@ CREATE TABLE `screens` (
 
 INSERT INTO `screens` (`screen_id`, `screen_ip`, `screen_name`) VALUES
 (1, '1', 'Manufacturing Screen'),
-(2, '2', 'Molting Screen');
+(2, '2', 'Molting Screen'),
+(3, '3', 'Screen 3');
 
 -- --------------------------------------------------------
 
@@ -229,7 +232,8 @@ INSERT INTO `subproduct` (`subproduct_id`, `parts_name`, `product_id`) VALUES
 (25, 'Cooling Compartment', 11),
 (26, 'AC', 9),
 (27, 'Tire2', 12),
-(28, 'DRUM', 11);
+(28, 'DRUM', 11),
+(29, 'Tube', 10);
 
 -- --------------------------------------------------------
 
@@ -345,7 +349,7 @@ ALTER TABLE `clients`
 -- AUTO_INCREMENT for table `current`
 --
 ALTER TABLE `current`
-  MODIFY `current_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `current_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `feedback`
@@ -375,13 +379,13 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `product_rel`
 --
 ALTER TABLE `product_rel`
-  MODIFY `product_rel_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `product_rel_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `screens`
 --
 ALTER TABLE `screens`
-  MODIFY `screen_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `screen_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `shifts`
@@ -393,7 +397,7 @@ ALTER TABLE `shifts`
 -- AUTO_INCREMENT for table `subproduct`
 --
 ALTER TABLE `subproduct`
-  MODIFY `subproduct_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `subproduct_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `users`
